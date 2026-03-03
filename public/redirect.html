@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <script>
+      // Log BEFORE loading MSAL - so we can see raw localStorage state
+      console.log("=== redirect.html loaded ===");
+      console.log("URL:", window.location.href);
+      console.log("localStorage length:", localStorage.length);
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        console.log(key, ":", localStorage.getItem(key));
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@5.2.0/lib/msal-browser.min.js"></script>
+    <script>
+      const msalInstance = new msal.PublicClientApplication({
+        auth: {
+          clientId: "83a81f6b-6e2f-404f-8435-8686d019806d",
+          authority: "https://login.microsoftonline.com/c42f44e3-dca8-43ac-bfd0-9f2bbdce6c7a",
+        },
+        cache: {
+          cacheLocation: "localStorage", // 👈 must match main app
+        },
+      });
+      msalInstance.initialize().then(() => {
+        msalInstance.handleRedirectPromise();
+      });
+    </script>
+  </body>
+</html>
