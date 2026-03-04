@@ -7,6 +7,7 @@ import { SearchBox } from "./components/SearchBox";
 import { SearchResultsView } from "./components/SearchResultsView";
 import { apiRequest } from "./authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import Divider  from '@mui/material/Divider';
 
 import "./App.css";
 
@@ -123,6 +124,7 @@ function App() {
                 (
                   <>
                     <SearchBox  region={region}  onSearchResultChange={searchResultChange} />
+                    <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                     {searchResult && (<SearchResultsView searchResult={searchResult} />)}
                   </>
                 )
