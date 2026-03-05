@@ -1,17 +1,14 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { apiRequest } from "../authConfig";
+import { useMsal} from "@azure/msal-react";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import Tooltip from '@mui/material/Tooltip';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { apiRequest } from "../authConfig";
-import { useMsal} from "@azure/msal-react";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
 const API_ENDPOINT = import.meta.env.VITE_API_URL;
 
-/**
- * INTERFACES
- */
 interface SearchResultsViewProps {
   searchResult: string | null;
 }

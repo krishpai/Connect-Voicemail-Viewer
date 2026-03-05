@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { useMsal } from "@azure/msal-react";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import { apiRequest } from "../authConfig";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { VMCategory } from "./VMCategory";
 import { LanguageSelection } from "./LanguageSelection";
 import { Box, Stack, Typography, Button } from "@mui/material";
-import { useMsal } from "@azure/msal-react";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
-import { apiRequest } from "../authConfig";
 
 const API_ENDPOINT = import.meta.env.VITE_API_URL;
 
@@ -19,7 +19,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChan
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
-  // --- State Management ---
   const [vmCategory, setVMCategory] = useState<string>(region);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -28,7 +27,6 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChan
   const [searchFailed, setSearchFailed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // --- API Logic ---
   const searchClicked = async () => {
     setLoading(true);
     setSearchFailed(false);

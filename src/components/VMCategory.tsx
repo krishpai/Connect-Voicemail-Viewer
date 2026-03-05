@@ -35,7 +35,7 @@ export const VMCategory: React.FC<VMCategoryProps> = ({
   ];
 
   // Increased padding slightly from 0.25 to 0.5 for a "middle ground" feel
-  const BalancedRadio = <Radio sx={{ py: 0.5 }} />;
+  const BalancedRadio = <Radio sx={{ py: 0.25 }} />;
 
   return (
     <FormControl component="fieldset">
@@ -47,7 +47,7 @@ export const VMCategory: React.FC<VMCategoryProps> = ({
           textAlign: 'left', 
           mb: 1, 
           display: 'block', 
-          marginLeft: 14 
+          marginLeft: 12 
         }}
       >
         Mailbox
@@ -64,8 +64,8 @@ export const VMCategory: React.FC<VMCategoryProps> = ({
             sx={{
               display: "grid",
               gridTemplateColumns: "repeat(2, 1fr)",
-              rowGap: 0.5,     // Increased from 0 to 0.5 for a small gap
-              columnGap: 2,   // Increased horizontal gap for better readability
+              rowGap: 0.3,     // Increased from 0 to 0.5 for a small gap
+              columnGap: 0,   // Increased horizontal gap for better readability
             }}
           >
             {globalOptions.map((option) => (

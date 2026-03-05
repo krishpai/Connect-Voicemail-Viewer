@@ -15,10 +15,10 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ userName, children }) =>
       {/* 1. Add top margin to account for the fixed navbar height */}
       <Box
         sx={{
-          marginTop: "25px", // Standard Toolbar height + 1px
+          marginTop: "15px", // Standard Toolbar height + 1px
           width: "100%",
           p: 3,
-          // 2. Optional: Ensure content area takes up the rest of the height
+          // 2. Ensure content area takes up the rest of the height
           minHeight: "calc(100vh - 65px)",
           backgroundColor: "background.default",
         }}
