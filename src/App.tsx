@@ -10,7 +10,7 @@ import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import Divider  from '@mui/material/Divider';
 
 import { AmazonConnectApp } from '@amazon-connect/app';
-import { AgentClient, ContactClient } from "@amazon-connect/contact";
+import { AgentClient } from "@amazon-connect/contact";
 
 
 import "./App.css";
