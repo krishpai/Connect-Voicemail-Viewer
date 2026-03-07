@@ -139,6 +139,16 @@ function App() {
         const name = await agentClient.getName();
         console.log("Agent Name:", name);
 
+        const agentARN = await agentClient.getARN();
+        console.log("Agent ARN:", agentARN);
+        
+        // Extract user ID from ARN
+        // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
+        const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
+        const userId = userIdMatch ? userIdMatch[1] : null;
+  
+  console.log("User ID:", userId);
+
       } catch (error) {
         console.error("Failed to initialize Amazon Connect SDK", error);
       }
