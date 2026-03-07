@@ -22,8 +22,8 @@ function App() {
   const [searchResult, setSearchResult] = useState("");
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
-  const [contactId, setContactId] = useState<string | null>(null);
+  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
+  const [_contactId, setContactId] = useState<string | null>(null);
 
   const account = accounts[0];
   const claims = account?.idTokenClaims;
