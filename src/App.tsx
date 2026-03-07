@@ -14,7 +14,7 @@ function App() {
   const [_contactId, setContactId] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [connectUserId, setConnectUserId] = useState<string | null>(null);
+  const [_connectUserId, setConnectUserId] = useState<string | null>(null);
 
   const searchResultChange = (value: string) =>
   {
