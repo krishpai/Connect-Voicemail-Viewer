@@ -132,7 +132,7 @@ function App() {
 
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(provider);
-        console.log("***************Provider successfully established");
+        
 
         // Create an Agent Client using the provider
         const agentClient = new AgentClient({ provider });
@@ -142,6 +142,8 @@ function App() {
         const agentARN = await agentClient.getARN();
         console.log("Agent ARN:", agentARN);
         
+        console.log("***************Provider successfully established. Agent ARN: " + agentARN);
+
         // Extract user ID from ARN
         // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
         const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
