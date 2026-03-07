@@ -10,10 +10,11 @@ import Divider  from '@mui/material/Divider';
 import "./App.css";
 
 function App() {
-  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
+  const [connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
   const [_contactId, setContactId] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [connectUserId, setConnectUserId] = useState<string | null>(null);
 
   const searchResultChange = (value: string) =>
   {
@@ -29,7 +30,8 @@ function App() {
     //Ensure MSAL knows which account is active
 
     const initConnect = async () => {
-      try {
+      try 
+      {
         
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
@@ -51,22 +53,17 @@ function App() {
 
         // Create an Agent Client using the provider
         const agentClient = new AgentClient( amazonConnectApp.provider );
-        const name = await agentClient.getName();
-        console.log("***************After agentClient.getName()");
-        console.log("Agent Name:", name);
-
         const agentARN = await agentClient.getARN();
         console.log("Agent ARN:", agentARN);
-        console.log("***************After agentClient.getARN()");
-        
 
         // Extract user ID from ARN
         // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
         const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
-        const userId = userIdMatch ? userIdMatch[1] : null;
-  
+        const connectUserId = userIdMatch ? userIdMatch[1] : null;
+
+        setConnectUserId(connectUserId);
         setLoading(false);
-        console.log("User ID:", userId);
+        console.log("User ID:", connectUserId);
 
       } catch (error) {
         console.error("Failed to initialize Amazon Connect SDK", error);
@@ -81,18 +78,20 @@ function App() {
 
   return (
     <>
-      <PageLayout userName={"Krish Pai"}>
-              {loading ? (<p>Loading user preferences...</p>) : 
-                (
-                  <>
-                    <SearchBox  region={"SFL"}  onSearchResultChange={searchResultChange} />
-                    <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                    {searchResult && (<SearchResultsView searchResult={searchResult} />)}
-                  </>
-                )
-              }
-            </PageLayout>
-    </>
+      {connectProvider && (
+        <PageLayout userName={"Krish Pai"}>
+                {loading ? (<p>Loading user preferences...</p>) : 
+                  (
+                    <>
+                      <SearchBox  region={"SFL"}  onSearchResultChange={searchResultChange} />
+                      <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
+                      {searchResult && (<SearchResultsView searchResult={searchResult} />)}
+                    </>
+                  )
+                }
+              </PageLayout>
+      )}
+      </>
   );
 }
 
