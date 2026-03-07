@@ -20,8 +20,8 @@ function App() {
 
     const initConnect = async () => {
       try {
-        // Await the initialization
-        const { provider } = AmazonConnectApp.init({
+        
+        const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             console.log('************ App initialized with context:', event.context);
             
@@ -36,11 +36,11 @@ function App() {
         });
 
         // Save the provider to state so you can use it globally in your app
-        setConnectProvider(provider);
+        setConnectProvider(amazonConnectApp.provider);
         console.log("***************After Provider successfully established.");
 
         // Create an Agent Client using the provider
-        const agentClient = new AgentClient({ provider });
+        const agentClient = new AgentClient( amazonConnectApp.provider );
         const name = await agentClient.getName();
         console.log("***************After agentClient.getName()");
         console.log("Agent Name:", name);
