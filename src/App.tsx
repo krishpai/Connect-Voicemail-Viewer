@@ -118,7 +118,7 @@ function App() {
         // Await the initialization
         const { provider } = AmazonConnectApp.init({
           onCreate: async (event) => {
-            console.log('App initialized with context:', event.context);
+            console.log('************ App initialized with context:', event.context);
             
             if (event.context.scope && "contactId" in event.context.scope) {
               // You can also set specific context data to state here
@@ -132,7 +132,7 @@ function App() {
 
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(provider);
-        console.log("Provider successfully established");
+        console.log("***************Provider successfully established");
 
         // Create an Agent Client using the provider
         const agentClient = new AgentClient({ provider });
@@ -152,7 +152,7 @@ function App() {
 
   return (
     <>
-      <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
+      <MsalAuthenticationTemplate interactionType={InteractionType.None}
         authenticationRequest={{
           scopes: ["openid", "profile", "api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
         }}
