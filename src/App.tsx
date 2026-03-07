@@ -9,6 +9,10 @@ import { apiRequest } from "./authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import Divider  from '@mui/material/Divider';
 
+import { AmazonConnectApp } from '@amazon-connect/app';
+import { AgentClient, ContactClient } from "@amazon-connect/contact";
+
+
 import "./App.css";
 
 const API_ENDPOINT = import.meta.env.VITE_API_URL;
@@ -18,6 +22,8 @@ function App() {
   const [searchResult, setSearchResult] = useState("");
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
+  const [contactId, setContactId] = useState<string | null>(null);
 
   const account = accounts[0];
   const claims = account?.idTokenClaims;
@@ -106,6 +112,40 @@ function App() {
     if (accounts.length > 0) {
       getUserRegion();
     }
+
+    const initConnect = async () => {
+      try {
+        // Await the initialization
+        const { provider } = AmazonConnectApp.init({
+          onCreate: async (event) => {
+            console.log('App initialized with context:', event.context);
+            
+            if (event.context.scope && "contactId" in event.context.scope) {
+              // You can also set specific context data to state here
+              setContactId(event.context.scope.contactId);
+            }
+          },
+          onDestroy: async (event) => {
+            console.log('App being destroyed:', event);
+          },
+        });
+
+        // Save the provider to state so you can use it globally in your app
+        setConnectProvider(provider);
+        console.log("Provider successfully established");
+
+        // Create an Agent Client using the provider
+        const agentClient = new AgentClient({ provider });
+        const name = await agentClient.getName();
+        console.log("Agent Name:", name);
+
+      } catch (error) {
+        console.error("Failed to initialize Amazon Connect SDK", error);
+      }
+    };
+    
+    initConnect();
+
   }, [accounts, instance, getUserRegion, accounts.length]);
 
   //console.log("Session keys:", (sessionStorage));
