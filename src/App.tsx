@@ -162,7 +162,7 @@ function App() {
 
   return (
     <>
-      <MsalAuthenticationTemplate interactionType={InteractionType.None}
+      <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
         authenticationRequest={{
           scopes: ["openid", "profile", "api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
         }}
