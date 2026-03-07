@@ -2,15 +2,25 @@ import { useEffect, useState,} from "react";
 
 import { AmazonConnectApp } from '@amazon-connect/app';
 import { AgentClient } from "@amazon-connect/contact";
-
+import { PageLayout } from "./components/PageLayout";
+import { SearchBox } from "./components/SearchBox";
+import { SearchResultsView } from "./components/SearchResultsView";
+import Divider  from '@mui/material/Divider';
 
 import "./App.css";
 
 function App() {
   const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
   const [_contactId, setContactId] = useState<string | null>(null);
+  const [searchResult, setSearchResult] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
 
+  const searchResultChange = (value: string) =>
+  {
+    setSearchResult(value);
+  }
 
+  
   /**
    * Fetches the user region from the backend API.
    */
@@ -55,7 +65,8 @@ function App() {
         const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
         const userId = userIdMatch ? userIdMatch[1] : null;
   
-  console.log("User ID:", userId);
+        setLoading(false);
+        console.log("User ID:", userId);
 
       } catch (error) {
         console.error("Failed to initialize Amazon Connect SDK", error);
@@ -70,7 +81,17 @@ function App() {
 
   return (
     <>
-      
+      <PageLayout userName={"Krish Pai"}>
+              {loading ? (<p>Loading user preferences...</p>) : 
+                (
+                  <>
+                    <SearchBox  region={"SFL"}  onSearchResultChange={searchResultChange} />
+                    <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
+                    {searchResult && (<SearchResultsView searchResult={searchResult} />)}
+                  </>
+                )
+              }
+            </PageLayout>
     </>
   );
 }
