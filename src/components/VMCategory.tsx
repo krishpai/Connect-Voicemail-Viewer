@@ -34,7 +34,6 @@ export const VMCategory: React.FC<VMCategoryProps> = ({
     { value: "Self", label: "My own" },
   ];
 
-  // Increased padding slightly from 0.25 to 0.5 for a "middle ground" feel
   const BalancedRadio = <Radio sx={{ py: 0.25 }} />;
 
   return (
