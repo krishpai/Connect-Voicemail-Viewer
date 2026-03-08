@@ -113,7 +113,7 @@ function App() {
       }
       try 
       {
-        const amazonConnectApp = await AmazonConnectApp.init({
+        const amazonConnectApp =  AmazonConnectApp.init({
           onCreate: async (event) => {
             setSdkInitialized(true); // Handshake complete
             console.log('************ App initialized with context:', event.context);
