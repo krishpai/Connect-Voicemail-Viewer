@@ -24,7 +24,6 @@ function App() {
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
-  const [embeddedApp, setEmbeddedApp] = useState<boolean>(isIframe);
   const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
   const account = accounts[0];
   const claims = account?.idTokenClaims;
@@ -121,7 +120,6 @@ function App() {
       {
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
-            setEmbeddedApp(true);
             setSdkInitialized(true); // Handshake complete
             console.log('************ App initialized with context:', event.context);
             
