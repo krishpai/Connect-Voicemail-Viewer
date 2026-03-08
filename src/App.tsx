@@ -116,7 +116,7 @@ function App() {
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setSdkInitialized(true); // Handshake complete
-            console.log('************ App initialized with context:', JSON.stringify(event));
+            console.log('************ App initialized with context:', event.context);
             
             if (event.context.scope && "contactId" in event.context.scope) {
               // You can also set specific context data to state here
