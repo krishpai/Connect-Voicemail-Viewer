@@ -23,7 +23,7 @@ function App() {
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
-
+  const [embeddedApp, setEmbeddedApp] = useState<boolean>(false);
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
@@ -116,6 +116,7 @@ function App() {
         
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
+            setEmbeddedApp(true);
             console.log('************ App initialized with context:', event.context);
             
             if (event.context.scope && "contactId" in event.context.scope) {
@@ -130,7 +131,7 @@ function App() {
 
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(amazonConnectApp.provider);
-        console.log("***************After Provider successfully established.");
+        console.log("***************After Provider successfully established. " + amazonConnectApp.provider);
 
         // Create an Agent Client using the provider
         const agentClient = new AgentClient( amazonConnectApp.provider );
@@ -147,6 +148,7 @@ function App() {
         console.log("User ID:", connectUserId);
 
       } catch (error) {
+        
         console.error("Failed to initialize Amazon Connect SDK", error);
       }
     };
@@ -159,7 +161,7 @@ function App() {
 
   return (
     <>
-      {connectProvider && (
+      {embeddedApp && (
         <PageLayout userName={"Krish Pai"}>
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
@@ -172,7 +174,7 @@ function App() {
                 }
               </PageLayout>
       )}
-      {!connectProvider && (
+      {!embeddedApp && (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
             authenticationRequest={{
               scopes: ["openid", "profile", "api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
