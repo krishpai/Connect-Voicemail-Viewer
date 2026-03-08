@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback} from "react";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
-import { AmazonConnectApp } from '@amazon-connect/app';
+import { AmazonConnectApp  } from '@amazon-connect/app';
 import { AgentClient } from "@amazon-connect/contact";
 import { PageLayout } from "./components/PageLayout";
 import { SearchBox } from "./components/SearchBox";
@@ -18,7 +18,7 @@ const isIframe = window.self !== window.top; // Immediate check
 
 function App() {
   const { instance, accounts } = useMsal();
-  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
+  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp| null>(null);
   const [_contactId, setContactId] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState("");
   const [region, setRegion] = useState("");
@@ -113,11 +113,31 @@ function App() {
       }
       try 
       {
-        const amazonConnectApp = AmazonConnectApp.init({
+        const amazonConnectApp = await AmazonConnectApp.init({
           onCreate: async (event) => {
             setSdkInitialized(true); // Handshake complete
             console.log('************ App initialized with context:', event.context);
             
+            // Create an Agent Client using the provider
+            const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
+            const agentARN = await agentClient.getARN();
+            const agentRP = await agentClient.getRoutingProfile();
+            const region = agentRP.name.split('_')[1];
+            // Extract user ID from ARN
+            // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
+            const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
+            const connectUserId = userIdMatch ? userIdMatch[1] : null;
+            setConnectUserId(connectUserId);
+            setLoading(false);
+            console.log("User ID:", connectUserId);
+
+
+            console.log("Agent ARN:", agentARN);
+            console.log("Agent Region :", region) ;
+            console.log("Agent Routing profile :", agentRP.name) ;
+
+            setRegion(region);
+
             if (event.context.scope && "contactId" in event.context.scope) {
               // You can also set specific context data to state here
               setContactId(event.context.scope.contactId);
@@ -131,26 +151,8 @@ function App() {
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(amazonConnectApp.provider);
 
-        // Create an Agent Client using the provider
-        const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
-        const agentARN = await agentClient.getARN();
-        const agentRP = await agentClient.getRoutingProfile();
-        const region = agentRP.name.split('_')[1];
+       
 
-        console.log("Agent ARN:", agentARN);
-        console.log("Agent Region :", region) ;
-        console.log("Agent Routing profile :", agentRP.name) ;
-
-        setRegion(region);
-
-        // Extract user ID from ARN
-        // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
-        const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
-        const connectUserId = userIdMatch ? userIdMatch[1] : null;
-
-        setConnectUserId(connectUserId);
-        setLoading(false);
-        console.log("User ID:", connectUserId);
 
       } catch (error) {
         
@@ -163,10 +165,13 @@ function App() {
 
   }, [accounts, instance, getUserRegion_Entra, accounts.length]);
 
+  
+
   // If we are in an iframe but the SDK hasn't finished its handshake yet,
   // we show a neutral loading screen to prevent the MSAL Redirect from firing.
-  if (isIframe && !sdkInitialized) {
-    return <p>Connecting to Agent Workspace...</p>;
+  if (isIframe && !sdkInitialized) 
+  {
+      return <p>Connecting to Agent Workspace...</p>;
   }
 
   return (
