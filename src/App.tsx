@@ -15,7 +15,9 @@ import { apiRequest } from "./authConfig";
 
 import "./App.css";
 
-const API_ENDPOINT = import.meta.env.VITE_API_URL;
+const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
+const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
+
 const isIframe = window.self !== window.top; // Immediate check
 
 function App() {
@@ -54,7 +56,7 @@ function App() {
         return;
       }
 
-      const apiUrl = `${API_ENDPOINT}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
+      const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
 
       try 
       {
@@ -105,8 +107,19 @@ function App() {
       }
     }, [instance, accounts]);
   
-  const getUserRegion_Connect = useCallback(async () => {
+  const getUserInfo_Connect = useCallback(async (connectUserId: string|null) => {
     console.log("*********** in getUserRegion_Connect");
+    const apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=get_user_info&AgentUserId=${connectUserId}`;
+    console.log('apiUrl: ', apiUrl)
+    try
+    {
+      console.log('apiUrl: ', apiUrl)
+    }
+    catch (error) 
+    {
+      console.log('error: ', error)
+    }
+
 
   }, [])     
 
@@ -159,7 +172,7 @@ function App() {
               setContactId(event.context.scope.contactId);
             }
 
-            getUserRegion_Connect();
+            getUserInfo_Connect(connectUserId);
           },
           onDestroy: async (event) => {
             console.log('App being destroyed:', event);
@@ -178,7 +191,7 @@ function App() {
     initConnect();
     
 
-  }, [accounts, instance, getUserRegion_Entra, getUserRegion_Connect, accounts.length]);
+  }, [accounts, instance, getUserRegion_Entra, getUserInfo_Connect, accounts.length]);
 
   
 
