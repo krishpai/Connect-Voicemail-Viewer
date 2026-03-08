@@ -34,7 +34,7 @@ function App() {
   }
 
   /**
-   * Fetches the user region from the backend API.
+   * Fetches the user region from the backend API for standalone app.
    */
   const getUserRegion_Entra = useCallback(async () => {
       
@@ -58,7 +58,7 @@ function App() {
           account: currentAccount,
         });
 
-        // 4. Call the API
+
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
@@ -83,7 +83,6 @@ function App() {
       } 
       catch (error) 
       {
-        // 6. Handle MSAL Interaction Requirement
         if (error instanceof InteractionRequiredAuthError) 
         {
           instance.acquireTokenRedirect(apiRequest);
@@ -98,16 +97,12 @@ function App() {
         setLoading(false);
       }
     }, [instance, accounts]);
-
+  
+    
   useEffect(() => {
     
-    //Ensure MSAL knows which account is active
-    const currentAccount = accounts[0];
-    if (!instance.getActiveAccount()) {
-      instance.setActiveAccount(currentAccount);
-    }
-
-    if (accounts.length > 0) {
+    if (!isIframe && accounts.length > 0) {
+      instance.setActiveAccount(accounts[0]);
       getUserRegion_Entra();
     }
     const initConnect = async () => {
@@ -121,7 +116,7 @@ function App() {
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setSdkInitialized(true); // Handshake complete
-            console.log('************ App initialized with context:', event.context);
+            console.log('************ App initialized with context:', JSON.stringify(event));
             
             if (event.context.scope && "contactId" in event.context.scope) {
               // You can also set specific context data to state here
