@@ -23,7 +23,7 @@ function App() {
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
-  const [embeddedApp, setEmbeddedApp] = useState<boolean>(false);
+  const [embeddedApp, setEmbeddedApp] = useState<boolean>(true);
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
