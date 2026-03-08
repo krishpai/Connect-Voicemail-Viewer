@@ -114,7 +114,7 @@ function App() {
       try 
       {
         console.log('************ Before App initialized with context:');
-        const amazonConnectApp = AmazonConnectApp.init({
+        const amazonConnectApp = await AmazonConnectApp.init({
           onCreate: async (event) => {
             setEmbeddedApp(true);
             console.log('************ App initialized with context:', event.context);
@@ -134,7 +134,7 @@ function App() {
         console.log("***************After Provider successfully established. " + amazonConnectApp.provider);
 
         // Create an Agent Client using the provider
-        const agentClient = new AgentClient( amazonConnectApp.provider );
+        const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
         const agentARN = await agentClient.getARN();
         console.log("Agent ARN:", agentARN);
 
@@ -154,6 +154,7 @@ function App() {
     };
     
     initConnect();
+    
 
   }, [accounts, instance, getUserRegion, accounts.length]);
 
