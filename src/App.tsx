@@ -37,7 +37,7 @@ function App() {
   /**
    * Fetches the user region from the backend API.
    */
-  const getUserRegion = useCallback(async () => {
+  const getUserRegion_Entra = useCallback(async () => {
       
       const currentAccount = accounts[0];
       const username = currentAccount.idTokenClaims?.preferred_username;
@@ -101,6 +101,7 @@ function App() {
     }, [instance, accounts]);
 
   useEffect(() => {
+    
     //Ensure MSAL knows which account is active
     const currentAccount = accounts[0];
     if (!instance.getActiveAccount()) {
@@ -108,7 +109,7 @@ function App() {
     }
 
     if (accounts.length > 0) {
-      getUserRegion();
+      getUserRegion_Entra();
     }
     const initConnect = async () => {
       // If we aren't in an iframe, we don't even try Connect
@@ -167,7 +168,7 @@ function App() {
     initConnect();
     
 
-  }, [accounts, instance, getUserRegion, accounts.length]);
+  }, [accounts, instance, getUserRegion_Entra, accounts.length]);
 
   // If we are in an iframe but the SDK hasn't finished its handshake yet,
   // we show a neutral loading screen to prevent the MSAL Redirect from firing.
@@ -177,7 +178,7 @@ function App() {
 
   return (
     <>
-      {embeddedApp ? (
+      {isIframe ? (
         <PageLayout userName={""}>
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
