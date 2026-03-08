@@ -17,7 +17,7 @@ const API_ENDPOINT = import.meta.env.VITE_API_URL;
 
 function App() {
   const { instance, accounts } = useMsal();
-  const [connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
+  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp | null>(null);
   const [_contactId, setContactId] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState("");
   const [region, setRegion] = useState("");
