@@ -182,7 +182,7 @@ function App() {
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
                     <>
-                      <SearchBox  region={region}  onSearchResultChange={searchResultChange} />
+                      <SearchBox  region={region} entraAuth={false} onSearchResultChange={searchResultChange} />
                       <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                       {searchResult && (<SearchResultsView searchResult={searchResult} />)}
                     </>
@@ -202,7 +202,7 @@ function App() {
                   {loading ? (<p>Loading user preferences...</p>) : 
                     (
                       <>
-                        <SearchBox  region={region}  onSearchResultChange={searchResultChange} />
+                        <SearchBox  region={region}  entraAuth={true} onSearchResultChange={searchResultChange} />
                         <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                         {searchResult && (<SearchResultsView searchResult={searchResult} />)}
                       </>

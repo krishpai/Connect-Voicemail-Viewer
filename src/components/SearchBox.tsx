@@ -7,14 +7,16 @@ import { VMCategory } from "./VMCategory";
 import { LanguageSelection } from "./LanguageSelection";
 import { Box, Stack, Typography, Button } from "@mui/material";
 
-const API_ENDPOINT = import.meta.env.VITE_API_URL;
+const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
+const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
 
 interface SearchBoxProps {
   region: string;
+  entraAuth: boolean;
   onSearchResultChange: (value: string) => void;
 }
 
-export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChange }) => {
+export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, onSearchResultChange }) => {
   const { instance, accounts } = useMsal();
   const account = accounts[0];
   const claims = account?.idTokenClaims;
@@ -41,7 +43,12 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChan
           
     const preferred_agent = (vmCategory === "Self") ? (claims?.preferred_username ?? "") : "";
     
-    const apiUrl = `${API_ENDPOINT}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${preferred_agent}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
+    let apiUrl;
+
+    if(entraAuth)
+      apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${preferred_agent}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
+    else
+      apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${preferred_agent}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
 
     try {
       const authResult = await instance.acquireTokenSilent({
