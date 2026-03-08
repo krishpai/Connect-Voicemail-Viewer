@@ -113,7 +113,7 @@ function App() {
     const initConnect = async () => {
       try 
       {
-        
+        console.log('************ Before App initialized with context:');
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setEmbeddedApp(true);
