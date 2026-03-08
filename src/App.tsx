@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback} from "react";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { AmazonConnectApp  } from '@amazon-connect/app';
 import { AgentClient } from "@amazon-connect/contact";
+import { VoiceClient } from "@amazon-connect/voice";
+import { ContactClient } from "@amazon-connect/contact";
 import { PageLayout } from "./components/PageLayout";
 import { SearchBox } from "./components/SearchBox";
 import { SearchResultsView } from "./components/SearchResultsView";
@@ -25,6 +27,11 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
   const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
+  const [_voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
+  const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
+  const [_contactClient, setContactClient] = useState<ContactClient | null>(null);
+  
+
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
@@ -98,7 +105,11 @@ function App() {
       }
     }, [instance, accounts]);
   
-    
+  const getUserRegion_Connect = useCallback(async () => {
+    console.log("*********** in getUserRegion_Connect");
+
+  }, [])     
+
   useEffect(() => {
     
     if (!isIframe && accounts.length > 0) {
@@ -120,28 +131,35 @@ function App() {
             
             // Create an Agent Client using the provider
             const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
+            setAgentClient(agentClient);
             const agentARN = await agentClient.getARN();
             const agentRP = await agentClient.getRoutingProfile();
-            const region = agentRP.name.split('_')[1];
             // Extract user ID from ARN
             // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
             const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
             const connectUserId = userIdMatch ? userIdMatch[1] : null;
             setConnectUserId(connectUserId);
-            setLoading(false);
-            console.log("User ID:", connectUserId);
 
-
-            console.log("Agent ARN:", agentARN);
-            console.log("Agent Region :", region) ;
-            console.log("Agent Routing profile :", agentRP.name) ;
-
+            const region = agentRP.name.split('_')[1];
             setRegion(region);
 
+            const voiceClient = new VoiceClient({ provider: amazonConnectApp.provider });
+            setVoiceClient(voiceClient);
+            
+            const contactClient = new ContactClient({ provider: amazonConnectApp.provider });
+            setContactClient(contactClient);
+            
+            setLoading(false);
+            console.log("User ID:", connectUserId);
+            console.log("Agent ARN:", agentARN);
+            console.log("Agent Region :", region) ;
+            console.log("Agent Routing profile :", agentRP.name) ;            
+
             if (event.context.scope && "contactId" in event.context.scope) {
-              // You can also set specific context data to state here
               setContactId(event.context.scope.contactId);
             }
+
+            getUserRegion_Connect();
           },
           onDestroy: async (event) => {
             console.log('App being destroyed:', event);
@@ -150,9 +168,6 @@ function App() {
 
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(amazonConnectApp.provider);
-
-       
-
 
       } catch (error) {
         
@@ -163,7 +178,7 @@ function App() {
     initConnect();
     
 
-  }, [accounts, instance, getUserRegion_Entra, accounts.length]);
+  }, [accounts, instance, getUserRegion_Entra, getUserRegion_Connect, accounts.length]);
 
   
 
