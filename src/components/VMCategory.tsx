@@ -19,7 +19,7 @@ export const VMCategory: React.FC<VMCategoryProps> = ({
   vmCategory, 
   onVMCategoryChange 
 }) => {
-  const isGlobal = region === "ALL";
+  const isGlobal = vmCategory === "ALL";
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onVMCategoryChange(event.target.value);

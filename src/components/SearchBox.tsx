@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { apiRequest } from "../authConfig";
@@ -19,7 +19,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChan
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
-  const [vmCategory, setVMCategory] = useState<string>(region);
+  const [vmCategory, setVMCategory] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [englishChecked, setEnglishChecked] = useState<string>("true");
@@ -79,6 +79,12 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, onSearchResultChan
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (region) {
+      setVMCategory(region);
+    }
+  }, [region]);
 
   return (
     <Box 

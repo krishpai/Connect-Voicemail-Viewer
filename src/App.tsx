@@ -120,7 +120,6 @@ function App() {
       }
       try 
       {
-        console.log('************ Before App initialized with context:');
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setEmbeddedApp(true);
@@ -139,7 +138,6 @@ function App() {
 
         // Save the provider to state so you can use it globally in your app
         setConnectProvider(amazonConnectApp.provider);
-        console.log("***************After Provider successfully established. " + amazonConnectApp.provider);
 
         // Create an Agent Client using the provider
         const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
