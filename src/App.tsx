@@ -145,9 +145,10 @@ function App() {
 
         console.log("Agent ARN:", agentARN);
         console.log("Agent Region :", region) ;
+        console.log("Agent Routing profile :", agentRP.name) ;
 
         setRegion(region);
-        
+
         // Extract user ID from ARN
         // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
         const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
