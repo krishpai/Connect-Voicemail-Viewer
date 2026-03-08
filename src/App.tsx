@@ -173,7 +173,7 @@ function App() {
   return (
     <>
       {embeddedApp ? (
-        <PageLayout userName={"Krish Pai"}>
+        <PageLayout userName={""}>
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
                     <>
