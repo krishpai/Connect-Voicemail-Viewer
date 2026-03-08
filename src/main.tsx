@@ -26,11 +26,11 @@ const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
 
 root.render(
-  
+  <React.StrictMode>
     <MsalProvider instance={msalInstance}>
       <App />
     </MsalProvider>
-  
+  </React.StrictMode>,
 );
 
 /**
