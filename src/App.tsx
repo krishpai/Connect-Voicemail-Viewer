@@ -39,8 +39,6 @@ function App() {
    */
   const getUserRegion = useCallback(async () => {
       
-      if (accounts.length === 0) return;
-
       const currentAccount = accounts[0];
       const username = currentAccount.idTokenClaims?.preferred_username;
 
@@ -142,8 +140,14 @@ function App() {
         // Create an Agent Client using the provider
         const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
         const agentARN = await agentClient.getARN();
-        console.log("Agent ARN:", agentARN);
+        const agentRP = await agentClient.getRoutingProfile();
+        const region = agentRP.name.split('_')[1];
 
+        console.log("Agent ARN:", agentARN);
+        console.log("Agent Region :", region) ;
+
+        setRegion(region);
+        
         // Extract user ID from ARN
         // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
         const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
