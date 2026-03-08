@@ -107,9 +107,9 @@ function App() {
       instance.setActiveAccount(currentAccount);
     }
 
-    if (accounts.length > 0) {
-      getUserRegion();
-    }
+    //if (accounts.length > 0) {
+    //  getUserRegion();
+    //}
     const initConnect = async () => {
       try 
       {
