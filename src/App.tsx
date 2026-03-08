@@ -23,7 +23,7 @@ function App() {
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
-  const [embeddedApp, setEmbeddedApp] = useState<boolean>(true);
+  const [embeddedApp, setEmbeddedApp] = useState<boolean>(false);
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
@@ -114,7 +114,7 @@ function App() {
       try 
       {
         console.log('************ Before App initialized with context:');
-        const amazonConnectApp = await AmazonConnectApp.init({
+        const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setEmbeddedApp(true);
             console.log('************ App initialized with context:', event.context);
