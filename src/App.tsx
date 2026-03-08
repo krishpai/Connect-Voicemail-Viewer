@@ -182,7 +182,7 @@ function App() {
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
                     <>
-                      <SearchBox  region={"SFL"}  onSearchResultChange={searchResultChange} />
+                      <SearchBox  region={region}  onSearchResultChange={searchResultChange} />
                       <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                       {searchResult && (<SearchResultsView searchResult={searchResult} />)}
                     </>
