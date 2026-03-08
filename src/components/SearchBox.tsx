@@ -51,7 +51,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, onSearc
       apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${preferred_agent}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
     
     console.log("apiUrl: " + apiUrl)
-    let accessToken = "";
+    let accessToken = "none";
 
     try {
       if(entraAuth)
