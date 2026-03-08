@@ -14,6 +14,7 @@ import { apiRequest } from "./authConfig";
 import "./App.css";
 
 const API_ENDPOINT = import.meta.env.VITE_API_URL;
+const isIframe = window.self !== window.top; // Immediate check
 
 function App() {
   const { instance, accounts } = useMsal();
@@ -23,7 +24,8 @@ function App() {
   const [region, setRegion] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
-  const [embeddedApp, setEmbeddedApp] = useState<boolean>(false);
+  const [embeddedApp, setEmbeddedApp] = useState<boolean>(isIframe);
+  const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
   const account = accounts[0];
   const claims = account?.idTokenClaims;
 
@@ -107,16 +109,22 @@ function App() {
       instance.setActiveAccount(currentAccount);
     }
 
-    //if (accounts.length > 0) {
-    //  getUserRegion();
-    //}
+    if (accounts.length > 0) {
+      getUserRegion();
+    }
     const initConnect = async () => {
+      // If we aren't in an iframe, we don't even try Connect
+      if (!isIframe) {
+        setLoading(false);
+        return;
+      }
       try 
       {
         console.log('************ Before App initialized with context:');
         const amazonConnectApp = AmazonConnectApp.init({
           onCreate: async (event) => {
             setEmbeddedApp(true);
+            setSdkInitialized(true); // Handshake complete
             console.log('************ App initialized with context:', event.context);
             
             if (event.context.scope && "contactId" in event.context.scope) {
@@ -158,11 +166,15 @@ function App() {
 
   }, [accounts, instance, getUserRegion, accounts.length]);
 
-  //console.log("Session keys:", (sessionStorage));
+  // If we are in an iframe but the SDK hasn't finished its handshake yet,
+  // we show a neutral loading screen to prevent the MSAL Redirect from firing.
+  if (isIframe && !sdkInitialized) {
+    return <p>Connecting to Agent Workspace...</p>;
+  }
 
   return (
     <>
-      {embeddedApp && (
+      {embeddedApp ? (
         <PageLayout userName={"Krish Pai"}>
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
@@ -174,8 +186,8 @@ function App() {
                   )
                 }
               </PageLayout>
-      )}
-      {!embeddedApp && (
+      )
+      : (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
             authenticationRequest={{
               scopes: ["openid", "profile", "api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
