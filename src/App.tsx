@@ -151,7 +151,6 @@ function App() {
       setUserName("Unknown user");
     }
 
-
   }, [])     
 
   useEffect(() => {
