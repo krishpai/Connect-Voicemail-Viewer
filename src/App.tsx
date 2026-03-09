@@ -111,6 +111,7 @@ function App() {
   
   const getUserInfo_Connect = useCallback(async (connectUserId: string|null) => {
     console.log("*********** in getUserRegion_Connect");
+    connectUserId = "79e4e9fe-40f7-44d1-969e-d82113792b2f";
     const apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=get_user_info&AgentUserId=${connectUserId}`;
     console.log('apiUrl: ', apiUrl)
     try
