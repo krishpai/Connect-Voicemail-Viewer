@@ -104,7 +104,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     {
       let accessToken = "None";
 
-      if(entraAuth)
+      if(!isIframe)
       {
         const authResult = await instance.acquireTokenSilent({
           ...apiRequest,
@@ -125,7 +125,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         console.error("API Error marking as read:", error);
       }
     }
-  }, [accounts, instance, entraAuth]);
+  }, [accounts, instance, entraAuth, isIframe]);
 
   // 4. COLUMNS DEFINITION
   const columns = useMemo<GridColDef<GridRow>[]>(() => [
@@ -226,7 +226,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         initialState={{
           pagination: { paginationModel: { pageSize: 10 } },
           columns: {
-            columnVisibilityModel: { id: false, dial_action: isIframe },
+            columnVisibilityModel: { id: false  },
           },
         }}
         sx={{
