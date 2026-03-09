@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback} from "react";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { AmazonConnectApp  } from '@amazon-connect/app';
 import { AgentClient } from "@amazon-connect/contact";
-import { VoiceClient } from "@amazon-connect/voice";
+import { VoiceClient, type CreateOutboundCallResult } from "@amazon-connect/voice";
 import { ContactClient } from "@amazon-connect/contact";
 import { PageLayout } from "./components/PageLayout";
 import { SearchBox } from "./components/SearchBox";
@@ -29,7 +29,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [_connectUserId, setConnectUserId] = useState<string | null>(null);
   const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
-  const [_voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
+  const [voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
   const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
   const [contactClient, setContactClient] = useState<ContactClient | null>(null);
   const [userName, setUserName] = useState<string |null|undefined>(null);
@@ -40,11 +40,33 @@ function App() {
   const makeOutboundCall  = async (phoneNumber: string) =>
   {
     console.log("phoneNumber: "+ phoneNumber)
-    const contacts = await contactClient?.listContacts();
-    console.log(`Active contacts: ${contacts?.length}`);
-    contacts?.forEach((contact) => {
-    console.log(`Contact ${contact.contactId}: ${contact.type}`);
-});
+    if(contactClient)
+    {
+      const contacts = await contactClient.listContacts();
+      console.log(`Active contacts: ${contacts?.length}`);
+      contacts?.forEach((contact) => {
+        console.log(`Contact ${contact.contactId}: ${contact.type}`);
+      });
+
+      if (contacts && contacts.length > 0)
+      {
+        console.log("Agent busy on an existing call, cannot initiate new call");
+      }
+      else
+      {
+        console.log("Calling  "+ phoneNumber)
+        if(voiceClient)
+        {
+          const outboundCallResult:CreateOutboundCallResult = await voiceClient.createOutboundCall(phoneNumber);
+          console.log("outboundCallResult.contactId : " + outboundCallResult.contactId);
+
+        }
+
+      }
+
+    }
+
+
   }
 
   const searchResultChange = (value: string) =>
