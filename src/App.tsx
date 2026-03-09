@@ -32,11 +32,11 @@ function App() {
   const [_voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
   const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
   const [_contactClient, setContactClient] = useState<ContactClient | null>(null);
+  const [userName, setUserName] = useState<string |null|undefined>(null);
   
 
   const account = accounts[0];
-  const claims = account?.idTokenClaims;
-
+  
   const searchResultChange = (value: string) =>
   {
     setSearchResult(value);
@@ -49,6 +49,7 @@ function App() {
       
       const currentAccount = accounts[0];
       const username = currentAccount.idTokenClaims?.preferred_username;
+      setUserName(username);
 
       if (!username) 
       {
@@ -62,16 +63,18 @@ function App() {
       {
         setLoading(true);
 
+        
         const authResult = await instance.acquireTokenSilent({
           ...apiRequest,
           account: currentAccount,
         });
 
+        const accessToken = authResult.accessToken;
 
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${authResult.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
         });
@@ -83,7 +86,6 @@ function App() {
 
         const data = await response.json();
 
-        // 5. Update State based on API logic (success and found > 0)
         if (data && data.success && data.found) 
         {
           setRegion(data.region);
@@ -113,11 +115,40 @@ function App() {
     console.log('apiUrl: ', apiUrl)
     try
     {
-      console.log('apiUrl: ', apiUrl)
+      const accessToken = 'None';
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) 
+        {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+
+      const data = await response.json();
+      if (data && data.success && data.found) 
+      {
+        setRegion(data.region);
+        setUserName(data.userName);
+
+        console.log("User name identified:", data.userName);
+        console.log("User region identified:", data.region);
+      }
+      else
+      {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
     }
     catch (error) 
     {
       console.log('error: ', error)
+      setRegion("ALL");
+      setUserName("Unknown user");
     }
 
 
@@ -205,7 +236,7 @@ function App() {
   return (
     <>
       {isIframe ? (
-        <PageLayout userName={""}>
+        <PageLayout userName={userName ?? "Unknown User"}>
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
                     <>
@@ -224,8 +255,8 @@ function App() {
             }}
             errorComponent={({ error }) => <pre>Error: {error?.errorMessage}</pre>}
             loadingComponent={() => <span>Launching Login redirect...</span>}>
-              {account && (
-                <PageLayout userName={claims?.preferred_username ?? "Unknown User"}>
+              {account && ( 
+                <PageLayout userName={userName ?? "Unknown User"}>
                   {loading ? (<p>Loading user preferences...</p>) : 
                     (
                       <>
