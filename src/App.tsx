@@ -242,7 +242,7 @@ function App() {
                     <>
                       <SearchBox  region={region} entraAuth={false} onSearchResultChange={searchResultChange} />
                       <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                      {searchResult && (<SearchResultsView searchResult={searchResult} />)}
+                      {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={false}/>)}
                     </>
                   )
                 }
@@ -262,7 +262,7 @@ function App() {
                       <>
                         <SearchBox  region={region}  entraAuth={true} onSearchResultChange={searchResultChange} />
                         <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                        {searchResult && (<SearchResultsView searchResult={searchResult} />)}
+                        {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={true} />)}
                       </>
                     )
                   }
