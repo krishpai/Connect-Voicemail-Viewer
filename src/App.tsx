@@ -31,12 +31,22 @@ function App() {
   const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
   const [_voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
   const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
-  const [_contactClient, setContactClient] = useState<ContactClient | null>(null);
+  const [contactClient, setContactClient] = useState<ContactClient | null>(null);
   const [userName, setUserName] = useState<string |null|undefined>(null);
   
 
   const account = accounts[0];
   
+  const makeOutboundCall  = async (phoneNumber: string) =>
+  {
+    console.log("phoneNumber: "+ phoneNumber)
+    const contacts = await contactClient?.listContacts();
+    console.log(`Active contacts: ${contacts?.length}`);
+    contacts?.forEach((contact) => {
+    console.log(`Contact ${contact.contactId}: ${contact.type}`);
+});
+  }
+
   const searchResultChange = (value: string) =>
   {
     setSearchResult(value);
@@ -242,7 +252,7 @@ function App() {
                     <>
                       <SearchBox  region={region} entraAuth={false} onSearchResultChange={searchResultChange} />
                       <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                      {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={false}/>)}
+                      {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={false} onDialNumberClicked={makeOutboundCall}/>)}
                     </>
                   )
                 }
@@ -262,7 +272,7 @@ function App() {
                       <>
                         <SearchBox  region={region}  entraAuth={true} onSearchResultChange={searchResultChange} />
                         <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                        {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={true} />)}
+                        {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={true} onDialNumberClicked={makeOutboundCall}/>)}
                       </>
                     )
                   }

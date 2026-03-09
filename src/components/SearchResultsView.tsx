@@ -15,6 +15,7 @@ const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
 interface SearchResultsViewProps {
   searchResult: string | null;
   entraAuth: boolean;
+  onDialNumberClicked: (value: string) => void;
 }
 
 interface MatchedObject {
@@ -36,9 +37,10 @@ interface MatchedObject {
 interface GridRow extends MatchedObject {
   id: string;
   fileName: string;
+  
 }
 
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth }) => {
+export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, onDialNumberClicked }) => {
   const { instance, accounts } = useMsal();
   const [gridRows, setGridRows] = useState<GridRow[]>([]);
   
@@ -81,9 +83,9 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   const DialCustomer = useCallback((customerNumber: string) => {
     if (customerNumber) {
       console.log(`Dialing: ${customerNumber}`);
-      //window.location.href = `tel:${customerNumber}`;
+      onDialNumberClicked(customerNumber);
     }
-  }, []);
+  }, [onDialNumberClicked]);
 
   // UPDATER FUNCTION
   const handleMarkAsRead = useCallback(async (contactId: string, fileName: string) => {
