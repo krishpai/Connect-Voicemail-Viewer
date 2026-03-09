@@ -104,7 +104,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     {
       let accessToken = "None";
 
-      if(!isIframe)
+      if(entraAuth)
       {
         const authResult = await instance.acquireTokenSilent({
           ...apiRequest,
@@ -125,7 +125,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         console.error("API Error marking as read:", error);
       }
     }
-  }, [accounts, instance, entraAuth, isIframe]);
+  }, [accounts, instance, entraAuth]);
 
   // 4. COLUMNS DEFINITION
   const columns = useMemo<GridColDef<GridRow>[]>(() => [
@@ -168,25 +168,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       valueGetter: (value) => (value === 'VMX3_VM_QUEUE' ? 'Self' : value),
     },
     { field: 'vmx3_customer_number', headerName: 'Customer Phone', width: 132 },
-    {
-      field: 'dial_action',
-      headerName: 'Dial',
-      width: 80,
-      sortable: false,
-      renderCell: (params) => (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <Tooltip title={`Call ${params.row.vmx3_customer_number}`}>
-            <IconButton 
-              color="primary" 
-              onClick={() => DialCustomer(params.row.vmx3_customer_number)}
-              size="small"
-            >
-              <PhoneIcon />
-            </IconButton>
-          </Tooltip>
-        </div>
-      )
-    },
     { field: 'vmx3_dialed_number', headerAlign: 'center', headerName: 'Dialed number', width: 130 },
     { field: 'vmx3_lang_value', headerAlign: 'center', align: 'center', headerName: 'Language', width: 100 },
     {
@@ -205,6 +186,25 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
             Your browser does not support audio.
           </audio>
         </div>
+      )
+    },
+    {
+      field: 'dial_action',
+      headerName: 'Dial',
+      headerAlign: 'center',
+      align: 'center',
+      width: 80,
+      sortable: false,
+      renderCell: (params) => (
+        <Tooltip title={`Call ${params.row.vmx3_customer_number}`}>
+          <IconButton 
+            color="primary" 
+            size="small" 
+            onClick={() => DialCustomer(params.row.vmx3_customer_number)}
+          >
+            <PhoneIcon />
+          </IconButton>
+        </Tooltip>
       )
     }
   ], [handleMarkAsRead, DialCustomer]);
@@ -226,7 +226,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         initialState={{
           pagination: { paginationModel: { pageSize: 10 } },
           columns: {
-            columnVisibilityModel: { id: false  },
+            columnVisibilityModel: { id: false, dial_action:isIframe  },
           },
         }}
         sx={{
