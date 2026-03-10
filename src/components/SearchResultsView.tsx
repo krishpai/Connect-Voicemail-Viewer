@@ -8,6 +8,8 @@ import IconButton from '@mui/material/IconButton';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhoneIcon from '@mui/icons-material/Phone';
+import TranscriptPopup from './TranscriptPopup'; 
+
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
 
@@ -189,6 +191,15 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           </audio>
         </div>
       )
+    },   
+    {
+      field: 'transcript',
+      headerName: 'Transcript',
+      width: 100,
+      sortable: false, // Usually best to disable sorting on long text icons
+      renderCell: (params) => (
+        <TranscriptPopup text={params.value ?? ""} />
+      ),
     },
     {
       field: 'dial_action',
