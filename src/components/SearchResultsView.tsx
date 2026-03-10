@@ -176,7 +176,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     { field: 'vmx3_lang_value', headerAlign: 'center', align: 'center', headerName: 'Language', width: 100 },
     {
       field: 'presigned_url',
-      headerName: '',
+      headerName: 'Listen',
       headerAlign: 'center',
       width: 320,
       renderCell: (params) => (
@@ -203,7 +203,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     },
     {
       field: 'dial_action',
-      headerName: 'Dial',
+      headerName: 'Call back',
       headerAlign: 'center',
       align: 'center',
       width: 80,
