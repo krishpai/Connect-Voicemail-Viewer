@@ -208,6 +208,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       align: 'center',
       width: 80,
       sortable: false,
+      hideable: isIframe,
       renderCell: (params) => (
         <Tooltip title={`Call ${params.row.vmx3_customer_number}`}>
           <IconButton 
@@ -220,7 +221,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         </Tooltip>
       )
     }
-  ], [handleMarkAsRead, DialCustomer]);
+  ], [handleMarkAsRead, DialCustomer, isIframe]);
 
   if (!searchResult) {
     return (
