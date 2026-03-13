@@ -9,9 +9,10 @@ import { SearchBox } from "./components/SearchBox";
 import { SearchResultsView } from "./components/SearchResultsView";
 import Divider  from '@mui/material/Divider';
 import { InteractionType } from "@azure/msal-browser";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { useMsal } from "@azure/msal-react";
 import { apiRequest } from "./authConfig";
+import { useAcquireTokenWithRecovery } from "./components/useAcquireTokenWithRecovery";
+
 import "./App.css";
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
@@ -39,71 +40,59 @@ function App() {
   // Refs to prevent double-init or stale closures
   const sdkStarted = useRef(false);
 
+  const acquireTokenWithRecovery = useAcquireTokenWithRecovery();
+
   /**
    * Fetches the user region from the backend API for standalone app.
    */
-  const getUserRegion_Entra = useCallback(async () => {
-      
-      const currentAccount = accounts[0];
-      if (!currentAccount) return;
+  const getUserRegion_Entra = useCallback(async (username:string) => {
 
-      const username = currentAccount.idTokenClaims?.preferred_username;
-      setUserName(username ?? "Unknown User");
+  const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
 
-      if (!username) 
-      {
-        console.warn("No preferred_username found in claims.");
-        return;
-      }
+  try 
+  {
+    setLoading(true);
 
-      const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
+    const authResult = await acquireTokenWithRecovery({ ...apiRequest });
 
-      try 
-      {
-        setLoading(true);
-        
-        const authResult = await instance.acquireTokenSilent({
-          ...apiRequest,
-          account: currentAccount,
-        });
+    // 2. Guard against missing tokens
+    if (!authResult?.accessToken) 
+    {
+      throw new Error("Failed to acquire a valid access token.");
+    }
 
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${authResult.accessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${authResult.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-        if (!response.ok) 
-        {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
+    if (!response.ok) 
+    {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
 
-        const data = await response.json();
+    const data = await response.json();
 
-        if (data?.success && data?.found) 
-        {
-          setRegion(data.region);
-          console.log("User region identified:", data.region);
-        }
-      } 
-      catch (error) 
-      {
-        if (error instanceof InteractionRequiredAuthError) 
-        {
-          instance.acquireTokenRedirect(apiRequest);
-        } 
-        else 
-        {
-          console.error("Failed to fetch user region:", error);
-        }
-      } 
-      finally 
-      {
-        setLoading(false);
-      }
-    }, [instance, accounts]);
+    if (data?.success && data?.found) 
+    {
+      setRegion(data.region);
+      console.log("User region identified:", data.region);
+    }
+  } 
+  catch (error) 
+  {
+    console.error("Failed to fetch user region:", error);
+    
+  }
+  finally 
+  {
+    setLoading(false);
+  }
+  // Include all stable dependencies
+}, [ acquireTokenWithRecovery]);
   
   const getUserInfo_Connect = useCallback(async (connectUserId: string|null) => {
     console.log("*********** in getUserRegion_Connect");
@@ -152,7 +141,14 @@ function App() {
     // 1. Standalone logic
     if (!isIframe && accounts.length > 0) {
       instance.setActiveAccount(accounts[0]);
-      getUserRegion_Entra();
+      const username = accounts[0].idTokenClaims?.preferred_username;
+      setUserName(username ?? "Unknown User");
+      if (!username) 
+      {
+        console.warn("No preferred_username found in claims.");
+        return;
+      }
+      getUserRegion_Entra(username);
     }
 
     // 2. Iframe / Amazon Connect logic
@@ -272,7 +268,7 @@ function App() {
       : (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
             authenticationRequest={{
-              scopes: ["openid", "profile", "api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
+              scopes: ["openid", "profile", "api://587acb42-3a4e-4c42-9448-2842d5fc82eb/access_as_user"],
             }}
             errorComponent={({ error }) => <pre>Error: {error?.errorMessage}</pre>}
             loadingComponent={() => <span>Launching Login redirect...</span>}>

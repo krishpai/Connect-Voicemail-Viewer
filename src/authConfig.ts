@@ -58,7 +58,7 @@ export const loginRequest = {
 
 // Scopes for Connect backend API access token
 export const apiRequest = {
-  scopes: ["api://c1b01858-bb4d-4855-b870-ab24df705688/access_as_user"],
+  scopes: ["api://587acb42-3a4e-4c42-9448-2842d5fc82eb/access_as_user"],
 };
 
 /**

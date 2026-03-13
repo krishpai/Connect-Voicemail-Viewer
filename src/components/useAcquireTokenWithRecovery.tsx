@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import type {
   AuthenticationResult,
@@ -6,11 +7,8 @@ import type {
 } from "@azure/msal-browser";
 
 function isMsalError(e: unknown): e is { errorCode: string } {
-  if (
-    typeof e === "object" &&
-    e !== null &&
-    "errorCode" in e
-  ) {
+  if (typeof e === "object" &&  e !== null &&  "errorCode" in e) 
+  {
     const record = e as Record<string, unknown>;
     return typeof record.errorCode === "string";
   }
@@ -39,9 +37,10 @@ function isMsalError(e: unknown): e is { errorCode: string } {
 export function useAcquireTokenWithRecovery() {
   const { instance } = useMsal();
 
-  async function acquireTokenWithRecovery(
+  // 2. Wrap the entire function in useCallback
+  const acquireTokenWithRecovery = useCallback(async (
     request: SilentRequest & RedirectRequest
-  ): Promise<AuthenticationResult | void> {
+  ): Promise<AuthenticationResult | void> => {
 
     const accounts = instance.getAllAccounts();
 
@@ -59,9 +58,7 @@ export function useAcquireTokenWithRecovery() {
         ...request,
         account,
       });
-
     } catch (e: unknown) {
-
       if (isMsalError(e)) {
         if (e.errorCode === "timed_out") {
           return instance.loginRedirect({
@@ -74,10 +71,10 @@ export function useAcquireTokenWithRecovery() {
           return instance.loginRedirect(request);
         }
       }
-
       throw e;
     }
-  }
+    // 3. Dependency on 'instance' ensures the function is stable
+  }, [instance]); 
 
   return acquireTokenWithRecovery;
 }
