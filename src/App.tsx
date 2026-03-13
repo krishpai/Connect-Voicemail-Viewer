@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback} from "react";
+import { useEffect, useState, useCallback, useRef} from "react";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { AmazonConnectApp  } from '@amazon-connect/app';
 import { AgentClient } from "@amazon-connect/contact";
@@ -12,67 +12,32 @@ import { InteractionType } from "@azure/msal-browser";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { useMsal } from "@azure/msal-react";
 import { apiRequest } from "./authConfig";
-
 import "./App.css";
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
-
 const isIframe = window.self !== window.top; // Immediate check
 
 function App() {
   const { instance, accounts } = useMsal();
-  const [_connectProvider, setConnectProvider] = useState<AmazonConnectApp| null>(null);
-  const [_contactId, setContactId] = useState<string | null>(null);
-  const [searchResult, setSearchResult] = useState("");
-  const [region, setRegion] = useState("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [_connectUserId, setConnectUserId] = useState<string | null>(null);
+
+  // SDK & Clients State
   const [sdkInitialized, setSdkInitialized] = useState<boolean>(false);
   const [voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
-  const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
+  const [, setAgentClient] = useState<AgentClient | null>(null);
+  const [, setConnectProvider] = useState<AmazonConnectApp| null>(null);
   const [contactClient, setContactClient] = useState<ContactClient | null>(null);
+
+  // Business State
+  const [region, setRegion] = useState("");
   const [userName, setUserName] = useState<string |null|undefined>("");
-  
+  const [searchResult, setSearchResult] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [, setConnectUserId] = useState<string | null>(null);
+  const [, setContactId] = useState<string | null>(null);
 
-  const account = accounts[0];
-  
-  const makeOutboundCall  = async (phoneNumber: string) =>
-  {
-    console.log("phoneNumber: "+ phoneNumber)
-    if(contactClient)
-    {
-      const contacts = await contactClient.listContacts();
-      console.log(`Active contacts: ${contacts?.length}`);
-      contacts?.forEach((contact) => {
-        console.log(`Contact ${contact.contactId}: ${contact.type}`);
-      });
-
-      if (contacts && contacts.length > 0)
-      {
-        console.log("Agent busy on an existing call, cannot initiate new call");
-      }
-      else
-      {
-        console.log("Calling  "+ phoneNumber)
-        if(voiceClient)
-        {
-          const outboundCallResult:CreateOutboundCallResult = await voiceClient.createOutboundCall(phoneNumber);
-          console.log("outboundCallResult.contactId : " + outboundCallResult.contactId);
-
-        }
-
-      }
-
-    }
-
-
-  }
-
-  const searchResultChange = (value: string) =>
-  {
-    setSearchResult(value);
-  }
+  // Refs to prevent double-init or stale closures
+  const sdkStarted = useRef(false);
 
   /**
    * Fetches the user region from the backend API for standalone app.
@@ -80,8 +45,10 @@ function App() {
   const getUserRegion_Entra = useCallback(async () => {
       
       const currentAccount = accounts[0];
+      if (!currentAccount) return;
+
       const username = currentAccount.idTokenClaims?.preferred_username;
-      setUserName(username);
+      setUserName(username ?? "Unknown User");
 
       if (!username) 
       {
@@ -94,19 +61,16 @@ function App() {
       try 
       {
         setLoading(true);
-
         
         const authResult = await instance.acquireTokenSilent({
           ...apiRequest,
           account: currentAccount,
         });
 
-        const accessToken = authResult.accessToken;
-
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${authResult.accessToken}`,
             "Content-Type": "application/json",
           },
         });
@@ -118,7 +82,7 @@ function App() {
 
         const data = await response.json();
 
-        if (data && data.success && data.found) 
+        if (data?.success && data?.found) 
         {
           setRegion(data.region);
           console.log("User region identified:", data.region);
@@ -148,23 +112,20 @@ function App() {
     console.log('apiUrl: ', apiUrl)
     try
     {
-      const accessToken = 'None';
-
       const response = await fetch(apiUrl, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) 
-        {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
+      {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
 
       const data = await response.json();
-      if (data && data.success && data.found) 
+      if (data?.success && data?.found) 
       {
         setRegion(data.region);
         setUserName(data.userName);
@@ -188,75 +149,89 @@ function App() {
 
   useEffect(() => {
     
+    // 1. Standalone logic
     if (!isIframe && accounts.length > 0) {
       instance.setActiveAccount(accounts[0]);
       getUserRegion_Entra();
     }
-    const initConnect = async () => {
-      // If we aren't in an iframe, we don't even try Connect
-      if (!isIframe) {
-        setLoading(false);
-        return;
-      }
-      try 
-      {
-        const amazonConnectApp =  AmazonConnectApp.init({
-          onCreate: async (event) => {
-            setSdkInitialized(true); // Handshake complete
-            console.log('************ App initialized with context:', event.context);
-            
-            // Create an Agent Client using the provider
-            const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
-            setAgentClient(agentClient);
-            const agentARN = await agentClient.getARN();
-            const agentRP = await agentClient.getRoutingProfile();
-            // Extract user ID from ARN
-            // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
-            const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
-            const connectUserId = userIdMatch ? userIdMatch[1] : null;
-            setConnectUserId(connectUserId);
 
-            const region = agentRP.name.split('_')[1];
-            setRegion(region);
+    // 2. Iframe / Amazon Connect logic
+    if (isIframe && !sdkStarted.current) 
+    {
+      sdkStarted.current = true; // Guard against React 18 double-run
+      
+      const amazonConnectApp =  AmazonConnectApp.init({
+        onCreate: async (event) => {
+          setSdkInitialized(true); // Handshake complete
+          console.log('************ App initialized with context:', event.context);
+          
+          // Create an Agent Client using the provider
+          const agentClient = new AgentClient({ provider: amazonConnectApp.provider });
+          const voiceClient = new VoiceClient({ provider: amazonConnectApp.provider });
+          const contactClient = new ContactClient({ provider: amazonConnectApp.provider });
 
-            const voiceClient = new VoiceClient({ provider: amazonConnectApp.provider });
-            setVoiceClient(voiceClient);
-            
-            const contactClient = new ContactClient({ provider: amazonConnectApp.provider });
-            setContactClient(contactClient);
-            
-            setLoading(false);
-            console.log("User ID:", connectUserId);
-            console.log("Agent ARN:", agentARN);
-            console.log("Agent Region :", region) ;
-            console.log("Agent Routing profile :", agentRP.name) ;            
+          setAgentClient(agentClient);
+          setVoiceClient(voiceClient);
+          setContactClient(contactClient);
 
-            if (event.context.scope && "contactId" in event.context.scope) {
-              setContactId(event.context.scope.contactId);
-            }
+          const agentARN = await agentClient.getARN();
+          // Extract user ID from ARN
+          // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
+          const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
+          const connectUserId = userIdMatch ? userIdMatch[1] : null;
+          console.log("User ID:", connectUserId);
+          console.log("Agent ARN:", agentARN);
+          
+          setConnectUserId(connectUserId);
+          setLoading(false);
 
+          if (event.context.scope && "contactId" in event.context.scope) {
+            setContactId(event.context.scope.contactId);
+          }
+          if (connectUserId) 
+          {
             getUserInfo_Connect(connectUserId);
-          },
-          onDestroy: async (event) => {
-            console.log('App being destroyed:', event);
-          },
-        });
+          }
+        },
+        onDestroy: async (event) => {
+          console.log('App being destroyed:', event);
+        },
+      });
 
         // Save the provider to state so you can use it globally in your app
-        setConnectProvider(amazonConnectApp.provider);
+      setConnectProvider(amazonConnectApp.provider);
 
-      } catch (error) {
-        
-        console.error("Failed to initialize Amazon Connect SDK", error);
-      }
+      
     };
-    
-    initConnect();
-    
 
   }, [accounts, instance, getUserRegion_Entra, getUserInfo_Connect, accounts.length]);
 
   
+  const makeOutboundCall  = useCallback(async (phoneNumber: string)  =>
+  {
+    console.log("phoneNumber: "+ phoneNumber)
+    if (!contactClient || !voiceClient) return;    
+    try 
+    {
+      const contacts = await contactClient.listContacts();
+      console.log(`Active contacts: ${contacts?.length}`);
+      const isBusy = contacts?.some(c => c.type === 'voice'); // Check specifically for voice
+
+      if (isBusy )
+      {
+        console.log("Agent busy on an existing call, cannot initiate new call");
+        return;
+      }
+      
+      console.log("Calling  "+ phoneNumber)
+      const outboundCallResult:CreateOutboundCallResult = await voiceClient.createOutboundCall(phoneNumber);
+      console.log("outboundCallResult.contactId : " + outboundCallResult.contactId);    
+    }
+    catch (error) 
+    {
+      console.error("Outbound call failed:", error);
+    }
+  }, [contactClient, voiceClient]);
 
   // If we are in an iframe but the SDK hasn't finished its handshake yet,
   // we show a neutral loading screen to prevent the MSAL Redirect from firing.
@@ -265,21 +240,35 @@ function App() {
       return <p>Connecting to Agent Workspace...</p>;
   }
 
+  // Main UI Fragment to keep code DRY
+  const renderMainContent = () => (
+    <PageLayout userName={userName ?? "User"}>
+      {loading ? (
+        <p>Loading preferences...</p>
+      ) : (
+        <>
+          <SearchBox 
+            region={region} 
+            entraAuth={!isIframe} 
+            userName={userName ?? ""} 
+            onSearchResultChange={setSearchResult} 
+          />
+          <Divider sx={{ my: 2, border: "1px solid", borderColor: "primary.dark" }} />
+          {searchResult && (
+            <SearchResultsView 
+              searchResult={searchResult} 
+              entraAuth={!isIframe} 
+              onDialNumberClicked={makeOutboundCall} 
+            />
+          )}
+        </>
+      )}
+    </PageLayout>
+  );
+
   return (
     <>
-      {isIframe ? (
-        <PageLayout userName={userName ?? "Unknown User"}>
-                {loading ? (<p>Loading user preferences...</p>) : 
-                  (
-                    <>
-                      <SearchBox  region={region} entraAuth={false} userName={userName ?? ""} onSearchResultChange={searchResultChange} />
-                      <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                      {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={false} onDialNumberClicked={makeOutboundCall}/>)}
-                    </>
-                  )
-                }
-              </PageLayout>
-      )
+      {isIframe ? ( renderMainContent())
       : (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
             authenticationRequest={{
@@ -287,20 +276,8 @@ function App() {
             }}
             errorComponent={({ error }) => <pre>Error: {error?.errorMessage}</pre>}
             loadingComponent={() => <span>Launching Login redirect...</span>}>
-              {account && ( 
-                <PageLayout userName={userName ?? "Unknown User"}>
-                  {loading ? (<p>Loading user preferences...</p>) : 
-                    (
-                      <>
-                        <SearchBox  region={region}  entraAuth={true} userName={userName ?? ""} onSearchResultChange={searchResultChange} />
-                        <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
-                        {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={true} onDialNumberClicked={makeOutboundCall}/>)}
-                      </>
-                    )
-                  }
-                </PageLayout>
-              )}      
-      </MsalAuthenticationTemplate>
+            { accounts.length &&  renderMainContent()}      
+        </MsalAuthenticationTemplate>
       )}
       </>
   );
