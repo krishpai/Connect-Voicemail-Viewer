@@ -32,7 +32,7 @@ function App() {
   const [voiceClient, setVoiceClient] = useState<VoiceClient | null>(null);
   const [_agentClient, setAgentClient] = useState<AgentClient | null>(null);
   const [contactClient, setContactClient] = useState<ContactClient | null>(null);
-  const [userName, setUserName] = useState<string |null|undefined>(null);
+  const [userName, setUserName] = useState<string |null|undefined>("");
   
 
   const account = accounts[0];
@@ -272,7 +272,7 @@ function App() {
                 {loading ? (<p>Loading user preferences...</p>) : 
                   (
                     <>
-                      <SearchBox  region={region} entraAuth={false} onSearchResultChange={searchResultChange} />
+                      <SearchBox  region={region} entraAuth={false} userName={userName ?? ""} onSearchResultChange={searchResultChange} />
                       <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                       {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={false} onDialNumberClicked={makeOutboundCall}/>)}
                     </>
@@ -292,7 +292,7 @@ function App() {
                   {loading ? (<p>Loading user preferences...</p>) : 
                     (
                       <>
-                        <SearchBox  region={region}  entraAuth={true} onSearchResultChange={searchResultChange} />
+                        <SearchBox  region={region}  entraAuth={true} userName={userName ?? ""} onSearchResultChange={searchResultChange} />
                         <Divider sx={{ border: "2px solid", borderColor: "primary.dark" }} />
                         {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={true} onDialNumberClicked={makeOutboundCall}/>)}
                       </>
