@@ -4,7 +4,7 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { VMCategory } from "./VMCategory";
 import { LanguageSelection } from "./LanguageSelection";
 import { Box, Stack, Typography, Button } from "@mui/material";
-import { useAcquireTokenWithRecovery } from "./useAcquireTokenWithRecovery";
+import { useAcquireTokenWithRecovery } from "../hooks/useAcquireTokenWithRecovery";
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
@@ -71,7 +71,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userNam
         {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         
         if (data.success && data.matched_objects_count > 0) 

@@ -5,6 +5,7 @@ import { LogLevel, type Configuration } from "@azure/msal-browser";
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
  */
+const API_SCOPE = import.meta.env.VITE_API_SCOPE;
 
 export const msalConfig: Configuration = {
   auth: {
@@ -58,7 +59,7 @@ export const loginRequest = {
 
 // Scopes for Connect backend API access token
 export const apiRequest = {
-  scopes: ["api://587acb42-3a4e-4c42-9448-2842d5fc82eb/access_as_user"],
+  scopes: [`${API_SCOPE}`],
 };
 
 /**

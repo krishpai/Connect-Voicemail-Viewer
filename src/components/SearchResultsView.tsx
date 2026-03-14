@@ -195,6 +195,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     {
       field: 'transcript',
       headerName: 'Transcript',
+      align: 'center',
       width: 100,
       sortable: false, // Usually best to disable sorting on long text icons
       renderCell: (params) => (

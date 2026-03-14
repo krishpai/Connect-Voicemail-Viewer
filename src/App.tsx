@@ -11,12 +11,13 @@ import Divider  from '@mui/material/Divider';
 import { InteractionType } from "@azure/msal-browser";
 import { useMsal } from "@azure/msal-react";
 import { apiRequest } from "./authConfig";
-import { useAcquireTokenWithRecovery } from "./components/useAcquireTokenWithRecovery";
+import { useAcquireTokenWithRecovery } from "./hooks/useAcquireTokenWithRecovery";
 
 import "./App.css";
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
+const API_SCOPE = import.meta.env.VITE_API_SCOPE;
 const isIframe = window.self !== window.top; // Immediate check
 
 function App() {
@@ -45,7 +46,7 @@ function App() {
   /**
    * Fetches the user region from the backend API for standalone app.
    */
-  const getUserRegion_Entra = useCallback(async (username:string) => {
+  const getUserInfo_Entra = useCallback(async (username:string) => {
 
   const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
 
@@ -93,7 +94,9 @@ function App() {
   }
   // Include all stable dependencies
 }, [ acquireTokenWithRecovery]);
-  
+  /**
+   * Fetches the user region from the backend API for iframe embedded app.
+   */
   const getUserInfo_Connect = useCallback(async (connectUserId: string|null) => {
     console.log("*********** in getUserRegion_Connect");
     //connectUserId = "79e4e9fe-40f7-44d1-969e-d82113792b2f";
@@ -148,7 +151,7 @@ function App() {
         console.warn("No preferred_username found in claims.");
         return;
       }
-      getUserRegion_Entra(username);
+      getUserInfo_Entra(username);
     }
 
     // 2. Iframe / Amazon Connect logic
@@ -200,7 +203,7 @@ function App() {
       
     };
 
-  }, [accounts, instance, getUserRegion_Entra, getUserInfo_Connect, accounts.length]);
+  }, [accounts, instance, getUserInfo_Entra, getUserInfo_Connect, accounts.length]);
 
   
   const makeOutboundCall  = useCallback(async (phoneNumber: string)  =>
@@ -268,7 +271,7 @@ function App() {
       : (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
             authenticationRequest={{
-              scopes: ["openid", "profile", "api://587acb42-3a4e-4c42-9448-2842d5fc82eb/access_as_user"],
+              scopes: ["openid", "profile", `${API_SCOPE}`],
             }}
             errorComponent={({ error }) => <pre>Error: {error?.errorMessage}</pre>}
             loadingComponent={() => <span>Launching Login redirect...</span>}>
