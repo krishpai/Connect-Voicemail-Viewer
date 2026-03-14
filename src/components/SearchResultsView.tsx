@@ -8,19 +8,23 @@ import IconButton from '@mui/material/IconButton';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhoneIcon from '@mui/icons-material/Phone';
+import DeleteIcon from '@mui/icons-material/Delete';
 import TranscriptPopup from './TranscriptPopup'; 
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
 
 
-interface SearchResultsViewProps {
+interface SearchResultsViewProps 
+{
   searchResult: string | null;
   entraAuth: boolean;
+  isUserVMX3Admin: string | null | undefined;
   onDialNumberClicked: (value: string) => void;
 }
 
-interface MatchedObject {
+interface MatchedObject 
+{
   vmx3_unread?: string;
   vmx3_contact_id: string;
   vmx3_customer_number: string;
@@ -36,21 +40,25 @@ interface MatchedObject {
   presigned_url: string;
 }
 
-interface GridRow extends MatchedObject {
+interface GridRow extends MatchedObject 
+{
   id: string;
   fileName: string;
   
 }
 
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, onDialNumberClicked }) => {
+export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, isUserVMX3Admin, onDialNumberClicked }) => {
   const { instance, accounts } = useMsal();
   const [gridRows, setGridRows] = useState<GridRow[]>([]);
   
   // DETECT IF RUNNING IN IFRAME
   const isIframe = useMemo(() => {
-    try {
+    try 
+    {
       return window.self !== window.top;
-    } catch (e) {
+    }
+    catch (e) 
+    {
       // If cross-origin restrictions block access to window.top, it's definitely an iframe
       console.log(e);
       return true;
@@ -130,6 +138,47 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       }
     }
   }, [accounts, instance, entraAuth]);
+
+  // DELETE FUNCTION
+const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) => {
+  if (!window.confirm("Are you sure you want to delete this voicemail?")) return;
+
+  // Optimistically remove from UI
+  setGridRows(prevRows => prevRows.filter(row => row.id !== contactId));
+
+  let apiUrl;
+  if (entraAuth)
+    apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`;
+  else
+    apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`;
+
+  try {
+    let accessToken = "None";
+    if (entraAuth) {
+      const authResult = await instance.acquireTokenSilent({
+        ...apiRequest,
+        account: accounts[0],
+      });
+      accessToken = authResult.accessToken;
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'DELETE', // Assuming your backend uses DELETE verb
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) 
+      throw new Error("Failed to delete");
+
+    console.log(`Deleted: ${fileName}`);
+  }
+  catch (error) 
+  {
+    console.error("API Error deleting voicemail:", error);
+    // Refresh the data if delete fails to keep UI in sync
+    setGridRows(parsedData); 
+  }
+}, [accounts, instance, entraAuth, parsedData]);
 
   // 4. COLUMNS DEFINITION
   const columns = useMemo<GridColDef<GridRow>[]>(() => [
@@ -221,8 +270,23 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           </IconButton>
         </Tooltip>
       )
+    },
+    {
+      field: 'delete_action',
+      headerName: '',
+      width: 70,
+      renderCell: (params) => {
+        const canDelete = params.row.vmx3_queue === 'VMX3_VM_QUEUE' || isUserVMX3Admin === 'Y';
+        if (!canDelete) return null;
+
+        return (
+          <IconButton color="default" onClick={() => DeleteVoiceMail(params.row.vmx3_contact_id, params.row.fileName)}>
+            <DeleteIcon />
+          </IconButton>
+        );
+      }
     }
-  ], [handleMarkAsRead, DialCustomer, isIframe]);
+  ], [handleMarkAsRead, DialCustomer, isUserVMX3Admin, DeleteVoiceMail, isIframe]);
 
   if (!searchResult) {
     return (

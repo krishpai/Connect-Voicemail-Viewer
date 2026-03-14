@@ -33,6 +33,7 @@ function App() {
   // Business State
   const [region, setRegion] = useState("");
   const [userName, setUserName] = useState<string |null|undefined>("");
+  const [isUserVMX3Admin, setIsUserVMX3Admin] = useState<string |null|undefined>("N");
   const [searchResult, setSearchResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [, setConnectUserId] = useState<string | null>(null);
@@ -48,52 +49,54 @@ function App() {
    */
   const getUserInfo_Entra = useCallback(async (username:string) => {
 
-  const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
+    const apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=get_region_of_user&AgentUserName=${encodeURIComponent(username)}`;
 
-  try 
-  {
-    setLoading(true);
-
-    const authResult = await acquireTokenWithRecovery({ ...apiRequest });
-
-    // 2. Guard against missing tokens
-    if (!authResult?.accessToken) 
+    try 
     {
-      throw new Error("Failed to acquire a valid access token.");
-    }
+      setLoading(true);
 
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${authResult.accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+      const authResult = await acquireTokenWithRecovery({ ...apiRequest });
 
-    if (!response.ok) 
+      // 2. Guard against missing tokens
+      if (!authResult?.accessToken) 
+      {
+        throw new Error("Failed to acquire a valid access token.");
+      }
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: 
+        {
+          Authorization: `Bearer ${authResult.accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) 
+      {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data?.success && data?.found) 
+      {
+        setRegion(data.region);
+        setIsUserVMX3Admin(data.voicemail_admin);
+        console.log("User region identified:", data.region);
+      }
+    } 
+    catch (error) 
     {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      console.error("Failed to fetch user region:", error);      
     }
-
-    const data = await response.json();
-
-    if (data?.success && data?.found) 
+    finally 
     {
-      setRegion(data.region);
-      console.log("User region identified:", data.region);
+      setLoading(false);
     }
-  } 
-  catch (error) 
-  {
-    console.error("Failed to fetch user region:", error);
-    
-  }
-  finally 
-  {
-    setLoading(false);
-  }
-  // Include all stable dependencies
-}, [ acquireTokenWithRecovery]);
+    // Include all stable dependencies
+  }, [ acquireTokenWithRecovery]);
+  
   /**
    * Fetches the user region from the backend API for iframe embedded app.
    */
@@ -121,6 +124,7 @@ function App() {
       {
         setRegion(data.region);
         setUserName(data.userName);
+        setIsUserVMX3Admin(data.voicemail_admin);
 
         console.log("User name identified:", data.userName);
         console.log("User region identified:", data.region);
@@ -198,11 +202,8 @@ function App() {
       });
 
         // Save the provider to state so you can use it globally in your app
-      setConnectProvider(amazonConnectApp.provider);
-
-      
+      setConnectProvider(amazonConnectApp.provider);     
     };
-
   }, [accounts, instance, getUserInfo_Entra, getUserInfo_Connect, accounts.length]);
 
   
@@ -246,20 +247,9 @@ function App() {
         <p>Loading preferences...</p>
       ) : (
         <>
-          <SearchBox 
-            region={region} 
-            entraAuth={!isIframe} 
-            userName={userName ?? ""} 
-            onSearchResultChange={setSearchResult} 
-          />
+          <SearchBox region={region} entraAuth={!isIframe} userName={userName ?? ""} onSearchResultChange={setSearchResult} />
           <Divider sx={{ my: 2, border: "1px solid", borderColor: "primary.dark" }} />
-          {searchResult && (
-            <SearchResultsView 
-              searchResult={searchResult} 
-              entraAuth={!isIframe} 
-              onDialNumberClicked={makeOutboundCall} 
-            />
-          )}
+          {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={!isIframe} onDialNumberClicked={makeOutboundCall}  isUserVMX3Admin={isUserVMX3Admin}/>)}
         </>
       )}
     </PageLayout>
@@ -270,9 +260,7 @@ function App() {
       {isIframe ? ( renderMainContent())
       : (
          <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}
-            authenticationRequest={{
-              scopes: ["openid", "profile", `${API_SCOPE}`],
-            }}
+            authenticationRequest={{scopes: ["openid", "profile", `${API_SCOPE}`],}}
             errorComponent={({ error }) => <pre>Error: {error?.errorMessage}</pre>}
             loadingComponent={() => <span>Launching Login redirect...</span>}>
             { accounts.length &&  renderMainContent()}      
