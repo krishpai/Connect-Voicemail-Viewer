@@ -20,6 +20,11 @@ const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
 const API_SCOPE = import.meta.env.VITE_API_SCOPE;
 const isIframe = window.self !== window.top; // Immediate check
 
+// Helper to check if we are in an MSAL "hidden" frame
+const isMsalInternalFrame = window.location.hash.includes("code=") || 
+                             window.location.hash.includes("error=") ||
+                             window.name.includes("msal");
+
 function App() {
   const { instance, accounts } = useMsal();
 
@@ -144,7 +149,9 @@ function App() {
   }, [])     
 
   useEffect(() => {
+    if (isMsalInternalFrame) return;
     console.log(" window.self !== window.top :" + ( window.self !== window.top))
+
     // 1. Standalone logic
     if (!isIframe && accounts.length > 0) 
     {
