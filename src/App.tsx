@@ -146,7 +146,9 @@ function App() {
   useEffect(() => {
     
     // 1. Standalone logic
-    if (!isIframe && accounts.length > 0) {
+    if (!isIframe && accounts.length > 0) 
+    {
+      console.info("In Standalone logic");
       instance.setActiveAccount(accounts[0]);
       const username = accounts[0].idTokenClaims?.preferred_username;
       setUserName(username ?? "Unknown User");
@@ -161,6 +163,7 @@ function App() {
     // 2. Iframe / Amazon Connect logic
     if (isIframe && !sdkStarted.current) 
     {
+      console.info("In Iframe logic");
       sdkStarted.current = true; // Guard against React 18 double-run
       
       const amazonConnectApp =  AmazonConnectApp.init({
