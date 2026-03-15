@@ -55,6 +55,7 @@ interface GridRow extends MatchedObject
   fileName: string;
   
 }
+const isIframe = window.self !== window.top; // Immediate check
 
 export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, vmx3Admin, onDialNumberClicked }) => {
   const [gridRows, setGridRows] = useState<GridRow[]>([]);
@@ -66,18 +67,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   const [itemToDelete, setItemToDelete] = useState<{ id: string, fileName: string } | null>(null);
 
   // DETECT IF RUNNING IN IFRAME
-  const isIframe = useMemo(() => {
-    try 
-    {
-      return window.self !== window.top;
-    }
-    catch (e) 
-    {
-      // If cross-origin restrictions block access to window.top, it's definitely an iframe
-      console.log(e);
-      return true;
-    }
-  }, []);
+  
 
   // PARSE SEARCH RESULTS
   const parsedData = useMemo(() => {
@@ -333,7 +323,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         );
       }
     }
-  ], [handleMarkAsRead, DialCustomer, vmx3Admin, handleOpenDeleteDialog, isIframe]);
+  ], [handleMarkAsRead, DialCustomer, vmx3Admin, handleOpenDeleteDialog ]);
 
   if (!searchResult) {
     return (
