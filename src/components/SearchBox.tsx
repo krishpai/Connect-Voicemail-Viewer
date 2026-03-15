@@ -12,12 +12,11 @@ interface SearchBoxProps
 {
   region: string;
   entraAuth: boolean;
-  userName: string;
   vmx3Admin: string | null | undefined;
   onSearchResultChange: (value: string) => void;
 }
 
-export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userName, vmx3Admin, onSearchResultChange }) => {
+export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, vmx3Admin, onSearchResultChange }) => {
 
   const [vmCategory, setVMCategory] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<string>("");

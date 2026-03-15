@@ -247,7 +247,7 @@ function App() {
         <p>Loading preferences...</p>
       ) : (
         <>
-          <SearchBox region={region} entraAuth={!isIframe} userName={userName ?? ""} vmx3Admin={vmx3Admin} onSearchResultChange={setSearchResult} />
+          <SearchBox region={region} entraAuth={!isIframe}  vmx3Admin={vmx3Admin} onSearchResultChange={setSearchResult} />
           <Divider sx={{ my: 2, border: "1px solid", borderColor: "primary.dark" }} />
           {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={!isIframe} vmx3Admin={vmx3Admin} onDialNumberClicked={makeOutboundCall}  />)}
         </>
