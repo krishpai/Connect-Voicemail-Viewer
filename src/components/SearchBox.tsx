@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { apiRequest } from "../authConfig";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { VMCategory } from "./VMCategory";
-import { LanguageSelection } from "./LanguageSelection";
 import { Box, Stack, Typography, Button } from "@mui/material";
 import { useAcquireTokenWithRecovery } from "../hooks/useAcquireTokenWithRecovery";
 
@@ -14,16 +13,15 @@ interface SearchBoxProps
   region: string;
   entraAuth: boolean;
   userName: string;
+  vmx3Admin: string | null | undefined;
   onSearchResultChange: (value: string) => void;
 }
 
-export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userName, onSearchResultChange }) => {
+export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userName, vmx3Admin, onSearchResultChange }) => {
 
   const [vmCategory, setVMCategory] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [englishChecked, setEnglishChecked] = useState<string>("true");
-  const [spanishChecked, setSpanishChecked] = useState<string>("false");
   const [searchFailed, setSearchFailed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -33,20 +31,13 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userNam
     setLoading(true);
     setSearchFailed(false);
 
-    const langParam = (englishChecked === "true" && spanishChecked === "true") 
-      ? "ALL" 
-      : (spanishChecked === "true") 
-        ? "es-US" 
-        : (englishChecked === "true") 
-          ? "en-US" 
-          : "";
           
     let apiUrl;
 
     if(entraAuth)
-      apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${vmCategory =='Self'?userName:''}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
+      apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=fetch_voice_messages&vmx3Admin=${vmx3Admin}&vmx3_region=${vmCategory}&start_date=${startDate}&end_date=${endDate}`;
     else
-      apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=fetch_voice_messages&vmx3_region=${vmCategory}&vmx3_preferred_agent=${vmCategory =='Self'?userName:''}&vmx3_lang_value=${langParam}&start_date=${startDate}&end_date=${endDate}`;
+      apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=fetch_voice_messages&vmx3Admin=${vmx3Admin}&vmx3_region=${vmCategory}&start_date=${startDate}&end_date=${endDate}`;
     
     console.log("apiUrl: " + apiUrl)
     let accessToken: string = "none";
@@ -126,16 +117,12 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, userNam
           onEndDateChange={(val) => setEndDate(val)} 
         />
         
-        <VMCategory 
-          region={region} 
-          vmCategory={vmCategory} 
-          onVMCategoryChange={(val) => setVMCategory(val)} 
-        />
-        
-        <LanguageSelection 
-          onEnglishChange={(val) => setEnglishChecked(val)} 
-          onSpanishChange={(val) => setSpanishChecked(val)} 
-        />
+        {( region === "ALL" || region == "") && (<VMCategory 
+            vmCategory={vmCategory} 
+            onVMCategoryChange={(val) => setVMCategory(val)} 
+          />)
+        }
+       
       </Stack>
 
       {/* Bottom Section: Action Button & Feedback 

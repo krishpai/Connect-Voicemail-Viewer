@@ -1,25 +1,34 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { apiRequest } from "../authConfig";
-import { useMsal } from "@azure/msal-react";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
+import { 
+  Tooltip, 
+  IconButton, 
+  Dialog, 
+  DialogActions, 
+  DialogContent, 
+  DialogContentText, 
+  DialogTitle, 
+  Button, 
+  CircularProgress 
+} from '@mui/material';
+
+
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhoneIcon from '@mui/icons-material/Phone';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TranscriptPopup from './TranscriptPopup'; 
+import { useAcquireTokenWithRecovery } from "../hooks/useAcquireTokenWithRecovery";
 
 const API_ENDPOINT_ENTRA_AUTH = import.meta.env.VITE_API_URL_ENTRA_AUTH;
 const API_ENDPOINT_CONNECT_AUTH = import.meta.env.VITE_API_URL_CONNECT_AUTH;
-
 
 interface SearchResultsViewProps 
 {
   searchResult: string | null;
   entraAuth: boolean;
-  isUserVMX3Admin: string | null | undefined;
+  vmx3Admin: string | null | undefined;
   onDialNumberClicked: (value: string) => void;
 }
 
@@ -47,10 +56,15 @@ interface GridRow extends MatchedObject
   
 }
 
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, isUserVMX3Admin, onDialNumberClicked }) => {
-  const { instance, accounts } = useMsal();
+export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, vmx3Admin, onDialNumberClicked }) => {
   const [gridRows, setGridRows] = useState<GridRow[]>([]);
+  const acquireTokenWithRecovery = useAcquireTokenWithRecovery();
   
+   // MODAL & LOADING STATE
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string, fileName: string } | null>(null);
+
   // DETECT IF RUNNING IN IFRAME
   const isIframe = useMemo(() => {
     try 
@@ -118,10 +132,11 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
 
       if(entraAuth)
       {
-        const authResult = await instance.acquireTokenSilent({
-          ...apiRequest,
-          account: accounts[0],
-        });
+        const authResult = await acquireTokenWithRecovery({ ...apiRequest });
+        if (!authResult?.accessToken) 
+        {
+          throw new Error("Failed to acquire a valid access token.");
+        }
         accessToken = authResult.accessToken;
       }
 
@@ -130,55 +145,72 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       });
 
       await response.json();
-    } catch (error) {
-      if (error instanceof InteractionRequiredAuthError) {
-        instance.acquireTokenRedirect(apiRequest);
-      } else {
-        console.error("API Error marking as read:", error);
-      }
     }
-  }, [accounts, instance, entraAuth]);
+    catch (error) 
+    {
+      console.error("API Error marking as read:", error);
+    }
+  }, [entraAuth, acquireTokenWithRecovery]);
 
+  // DELETE MODAL HANDLERS
+  const handleOpenDeleteDialog = useCallback((contactId: string, fileName: string) => {
+    setItemToDelete({ id: contactId, fileName: fileName });
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleCloseDeleteDialog = () => {
+    if (isDeleting) return; 
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
+  
   // DELETE FUNCTION
-const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) => {
-  if (!window.confirm("Are you sure you want to delete this voicemail?")) return;
+  const confirmDelete = useCallback(async () => {
+    if (!itemToDelete) return;
+    const { id: contactId, fileName } = itemToDelete;
 
-  // Optimistically remove from UI
-  setGridRows(prevRows => prevRows.filter(row => row.id !== contactId));
+    setIsDeleting(true);
 
-  let apiUrl;
-  if (entraAuth)
-    apiUrl = `${API_ENDPOINT_ENTRA_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`;
-  else
-    apiUrl = `${API_ENDPOINT_CONNECT_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`;
+    const apiUrl = entraAuth 
+      ? `${API_ENDPOINT_ENTRA_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`
+      : `${API_ENDPOINT_CONNECT_AUTH}?function_code=delete_voice_message&vmx3_file_name=${fileName}`;
 
-  try {
-    let accessToken = "None";
-    if (entraAuth) {
-      const authResult = await instance.acquireTokenSilent({
-        ...apiRequest,
-        account: accounts[0],
+    try 
+    {
+      let accessToken = "None";
+      if (entraAuth) {
+        const authResult = await acquireTokenWithRecovery({ ...apiRequest });
+        if (!authResult?.accessToken) 
+        {
+          throw new Error("Failed to acquire a valid access token.");
+        }
+        accessToken = authResult.accessToken;
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` }
       });
-      accessToken = authResult.accessToken;
+
+      if (!response.ok) throw new Error("Failed to delete");
+
+      setGridRows(prevRows => prevRows.filter(row => row.id !== contactId));
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
+    catch (error) 
+    {
+      console.error("API Error deleting voicemail:", error);
+      alert("Failed to delete voicemail. Please try again.");
+    }
+    finally 
+    {
+      setIsDeleting(false);
+    }
+  }, [itemToDelete, entraAuth, acquireTokenWithRecovery ]);
 
-    const response = await fetch(apiUrl, {
-      method: 'DELETE', // Assuming your backend uses DELETE verb
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
+  
 
-    if (!response.ok) 
-      throw new Error("Failed to delete");
-
-    console.log(`Deleted: ${fileName}`);
-  }
-  catch (error) 
-  {
-    console.error("API Error deleting voicemail:", error);
-    // Refresh the data if delete fails to keep UI in sync
-    setGridRows(parsedData); 
-  }
-}, [accounts, instance, entraAuth, parsedData]);
 
   // 4. COLUMNS DEFINITION
   const columns = useMemo<GridColDef<GridRow>[]>(() => [
@@ -212,11 +244,10 @@ const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) 
       },
     },
     {
-      field: 'vmx3_queue',
+      field: 'vmx3_queue_name',
       headerName: 'Queue',
       headerAlign: 'center',
-      align: 'center',
-      width: 180,
+      width: 210,
       // Logic to show 'Self' instead of 'VMX3_VM_QUEUE'
       valueGetter: (value) => (value === 'VMX3_VM_QUEUE' ? 'Self' : value),
     },
@@ -245,10 +276,16 @@ const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) 
       field: 'transcript',
       headerName: 'Transcript',
       align: 'center',
+      headerAlign: 'center',
       width: 100,
       sortable: false, // Usually best to disable sorting on long text icons
       renderCell: (params) => (
+        /* We wrap the component in a flex container 
+          to ensure vertical and horizontal centering 
+        */
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
         <TranscriptPopup text={params.value ?? ""} />
+    </div>
       ),
     },
     {
@@ -274,19 +311,29 @@ const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) 
     {
       field: 'delete_action',
       headerName: '',
+      align: 'center',
       width: 70,
+      sortable: false,
       renderCell: (params) => {
-        const canDelete = params.row.vmx3_queue === 'VMX3_VM_QUEUE' || isUserVMX3Admin === 'Y';
+        const canDelete = params.row.vmx3_queue === 'VMX3_VM_QUEUE' || vmx3Admin === 'Y';
         if (!canDelete) return null;
 
         return (
-          <IconButton color="default" onClick={() => DeleteVoiceMail(params.row.vmx3_contact_id, params.row.fileName)}>
-            <DeleteIcon />
-          </IconButton>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Tooltip title="Delete Voicemail">
+              <IconButton 
+                color="default" 
+                size="small"
+                onClick={() => handleOpenDeleteDialog(params.row.vmx3_contact_id, params.row.fileName)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
         );
       }
     }
-  ], [handleMarkAsRead, DialCustomer, isUserVMX3Admin, DeleteVoiceMail, isIframe]);
+  ], [handleMarkAsRead, DialCustomer, vmx3Admin, handleOpenDeleteDialog, isIframe]);
 
   if (!searchResult) {
     return (
@@ -323,6 +370,34 @@ const DeleteVoiceMail = useCallback(async (contactId: string, fileName: string) 
           ),
         }}
       />
+      {/* DELETE CONFIRMATION DIALOG */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby="delete-dialog-title"
+      >
+        <DialogTitle id="delete-dialog-title">Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to permanently delete this voicemail? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, px: 3 }}>
+          <Button onClick={handleCloseDeleteDialog} color="inherit" disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained" 
+            autoFocus
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

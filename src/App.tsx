@@ -33,7 +33,7 @@ function App() {
   // Business State
   const [region, setRegion] = useState("");
   const [userName, setUserName] = useState<string |null|undefined>("");
-  const [isUserVMX3Admin, setIsUserVMX3Admin] = useState<string |null|undefined>("N");
+  const [vmx3Admin, setVMX3Admin] = useState<string |null|undefined>("N");
   const [searchResult, setSearchResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [, setConnectUserId] = useState<string | null>(null);
@@ -82,7 +82,7 @@ function App() {
       if (data?.success && data?.found) 
       {
         setRegion(data.region);
-        setIsUserVMX3Admin(data.voicemail_admin);
+        setVMX3Admin(data.voicemail_admin);
         console.log("User region identified:", data.region);
       }
     } 
@@ -124,7 +124,7 @@ function App() {
       {
         setRegion(data.region);
         setUserName(data.userName);
-        setIsUserVMX3Admin(data.voicemail_admin);
+        setVMX3Admin(data.voicemail_admin);
 
         console.log("User name identified:", data.userName);
         console.log("User region identified:", data.region);
@@ -247,9 +247,9 @@ function App() {
         <p>Loading preferences...</p>
       ) : (
         <>
-          <SearchBox region={region} entraAuth={!isIframe} userName={userName ?? ""} onSearchResultChange={setSearchResult} />
+          <SearchBox region={region} entraAuth={!isIframe} userName={userName ?? ""} vmx3Admin={vmx3Admin} onSearchResultChange={setSearchResult} />
           <Divider sx={{ my: 2, border: "1px solid", borderColor: "primary.dark" }} />
-          {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={!isIframe} onDialNumberClicked={makeOutboundCall}  isUserVMX3Admin={isUserVMX3Admin}/>)}
+          {searchResult && (<SearchResultsView searchResult={searchResult} entraAuth={!isIframe} vmx3Admin={vmx3Admin} onDialNumberClicked={makeOutboundCall}  />)}
         </>
       )}
     </PageLayout>
