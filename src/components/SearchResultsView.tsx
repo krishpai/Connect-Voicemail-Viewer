@@ -302,7 +302,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       width: 70,
       sortable: false,
       renderCell: (params) => {
-        const canDelete = params.row.vmx3_queue === 'VMX3_VM_QUEUE' || vmx3Admin === 'Y';
+        console.log("vmx3Admin: " + vmx3Admin );
+        const canDelete = vmx3Admin === 'Y';
         if (!canDelete) return null;
 
         return (
