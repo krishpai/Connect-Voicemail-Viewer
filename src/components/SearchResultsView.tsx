@@ -80,16 +80,15 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       const rawData: Record<string, MatchedObject> = searchResultObj.matched_objects || {};
       const loggedInUser = userName ?? "User";
       
+      /* Check if any entries in the search result matches the logged in agent */
       Object.values(rawData).forEach((item) => {
-        if (item.vmx3_target === "agent" && item.vmx3_preferred_agent === loggedInUser) 
+        if (item.vmx3_target === "agent" && item.vmx3_preferred_agent.toLowerCase() === loggedInUser.toLowerCase()) 
         {
           item.vmx3_queue_name = "Self";
         }
       });
       
-
       console.log("Current User from Props: " + loggedInUser);
-
 
       return Object.entries(rawData).map(([fileName, details]) => ({
         id: details.vmx3_contact_id,
@@ -315,7 +314,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       width: 70,
       sortable: false,
       renderCell: (params) => {
-        const canDelete = vmx3Admin === 'Y';
+        const canDelete = vmx3Admin === 'Y' || params.row.vmx3_queue_name == 'Self';
         if (!canDelete) return null;
 
         return (
@@ -379,7 +378,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         <DialogTitle id="delete-dialog-title">Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to permanently delete this voicemail? This action cannot be undone.
+            Permanently delete this voicemail? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ pb: 2, px: 3 }}>

@@ -255,7 +255,7 @@ function App() {
 
   // Main UI Fragment to keep code DRY
   const renderMainContent = () => (
-    <PageLayout userName={userName ?? "User"}>
+    <PageLayout userName={userName ?? "User"}  region={region}>
       {loading ? (
         <p>Loading preferences...</p>
       ) : (

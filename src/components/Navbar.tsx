@@ -4,10 +4,11 @@ import logo from "../assets/veradium_logo.png";
 
 interface NavbarProps {
   userName: string;
+  region: string;
   companyName: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ userName, companyName }) => {
+const Navbar: React.FC<NavbarProps> = ({ userName, region, companyName }) => {
   return (
     <AppBar
       position="fixed"
@@ -38,7 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ userName, companyName }) => {
         <Box sx={{ flexGrow: 1 }} />
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="body1">{userName}</Typography>
+          <Typography variant="body1">{userName} - {region} </Typography>
         </Box>
       </Toolbar>
     </AppBar>

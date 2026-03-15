@@ -4,13 +4,14 @@ import Box from "@mui/material/Box";
 
 interface PageLayoutProps {
   userName: string;
+  region: string;
   children?: React.ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({ userName, children }) => {
+export const PageLayout: React.FC<PageLayoutProps> = ({ userName, region, children }) => {
   return (
     <>
-      <Navbar userName={userName} companyName="Veradium" />
+      <Navbar userName={userName} region={region} companyName="Veradium" />
 
       {/* 1. Add top margin to account for the fixed navbar height */}
       <Box
