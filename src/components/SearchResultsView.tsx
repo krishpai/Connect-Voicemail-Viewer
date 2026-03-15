@@ -28,6 +28,7 @@ interface SearchResultsViewProps
 {
   searchResult: string | null;
   entraAuth: boolean;
+  userName: string | null | undefined;
   vmx3Admin: string | null | undefined;
   onDialNumberClicked: (value: string) => void;
 }
@@ -37,7 +38,7 @@ interface MatchedObject
   vmx3_unread?: string;
   vmx3_contact_id: string;
   vmx3_customer_number: string;
-  vmx3_queue_arn: string;
+  vmx3_queue_name: string;
   vmx3_target: string;
   vmx3_preferred_agent: string;
   vmx3_region: string;
@@ -55,9 +56,11 @@ interface GridRow extends MatchedObject
   fileName: string;
   
 }
+
+
 const isIframe = window.self !== window.top; // Immediate check
 
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, entraAuth, vmx3Admin, onDialNumberClicked }) => {
+export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, userName, entraAuth, vmx3Admin, onDialNumberClicked }) => {
   const [gridRows, setGridRows] = useState<GridRow[]>([]);
   const acquireTokenWithRecovery = useAcquireTokenWithRecovery();
   
@@ -66,13 +69,27 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   const [isDeleting, setIsDeleting] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, fileName: string } | null>(null);
 
+  
   // PARSE SEARCH RESULTS
   const parsedData = useMemo(() => {
     if (!searchResult) return [];
 
-    try {
+    try 
+    {
       const searchResultObj = JSON.parse(searchResult);
       const rawData: Record<string, MatchedObject> = searchResultObj.matched_objects || {};
+      const loggedInUser = userName ?? "User";
+      
+      Object.values(rawData).forEach((item) => {
+        if (item.vmx3_target === "agent" && item.vmx3_preferred_agent === loggedInUser) 
+        {
+          item.vmx3_queue_name = "Self";
+        }
+      });
+      
+
+      console.log("Current User from Props: " + loggedInUser);
+
 
       return Object.entries(rawData).map(([fileName, details]) => ({
         id: details.vmx3_contact_id,
@@ -83,7 +100,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       console.error("Failed to parse searchResult JSON:", error);
       return [];
     }
-  }, [searchResult]);
+  }, [searchResult, userName]);
 
   // SYNC PARSED DATA TO STATE
   useEffect(() => {
@@ -285,11 +302,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       hideable: isIframe,
       renderCell: (params) => (
         <Tooltip title={`Call ${params.row.vmx3_customer_number}`}>
-          <IconButton 
-            color="primary" 
-            size="small" 
-            onClick={() => DialCustomer(params.row.vmx3_customer_number)}
-          >
+          <IconButton color="primary" size="small" onClick={() => DialCustomer(params.row.vmx3_customer_number)}>
             <PhoneIcon />
           </IconButton>
         </Tooltip>
@@ -302,7 +315,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       width: 70,
       sortable: false,
       renderCell: (params) => {
-        console.log("vmx3Admin: " + vmx3Admin );
         const canDelete = vmx3Admin === 'Y';
         if (!canDelete) return null;
 
