@@ -149,8 +149,8 @@ function App() {
   }, [])     
 
   useEffect(() => {
-    if (isMsalInternalFrame) return;
-    console.log(" window.self !== window.top :" + ( window.self !== window.top))
+    
+    
 
     // 1. Standalone logic
     if (!isIframe && accounts.length > 0) 
@@ -166,7 +166,8 @@ function App() {
       }
       getUserInfo_Entra(username);
     }
-
+    if (isMsalInternalFrame) return;
+    
     // 2. Iframe / Amazon Connect logic
     if (isIframe && !sdkStarted.current) 
     {

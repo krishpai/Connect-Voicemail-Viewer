@@ -66,9 +66,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   const [isDeleting, setIsDeleting] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, fileName: string } | null>(null);
 
-  // DETECT IF RUNNING IN IFRAME
-  
-
   // PARSE SEARCH RESULTS
   const parsedData = useMemo(() => {
     if (!searchResult) return [];
