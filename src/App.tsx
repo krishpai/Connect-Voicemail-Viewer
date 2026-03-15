@@ -144,7 +144,7 @@ function App() {
   }, [])     
 
   useEffect(() => {
-    
+    console.log(" window.self !== window.top :" + ( window.self !== window.top))
     // 1. Standalone logic
     if (!isIframe && accounts.length > 0) 
     {
