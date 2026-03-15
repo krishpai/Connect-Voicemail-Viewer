@@ -133,6 +133,7 @@ function App() {
 
         console.log("User name identified:", data.userName);
         console.log("User region identified:", data.region);
+        console.log("User admin status identified:", data.voicemail_admin);
       }
       else
       {
@@ -166,8 +167,9 @@ function App() {
       }
       getUserInfo_Entra(username);
     }
+
     if (isMsalInternalFrame) return;
-    
+
     // 2. Iframe / Amazon Connect logic
     if (isIframe && !sdkStarted.current) 
     {
