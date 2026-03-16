@@ -191,12 +191,18 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       }
 
       const response = await fetch(apiUrl, {
-        method: 'DELETE',
+        method: 'GET',
         headers: { Authorization: `Bearer ${accessToken}` }
       });
 
       if (!response.ok) throw new Error("Failed to delete");
 
+      const data = await response.json();
+      if (!data.success) 
+      {
+        throw new Error("Failed to delete");
+      }
+      
       setGridRows(prevRows => prevRows.filter(row => row.id !== contactId));
       setDeleteDialogOpen(false);
       setItemToDelete(null);
