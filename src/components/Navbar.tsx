@@ -10,11 +10,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ userName, region, companyName }) => {
   return (
-    <AppBar
-      position="fixed"
-      // Ensure it covers 100% width with no gaps
-      sx={{ backgroundColor: "#1976d2", width: "100%", left: 0, top: 0 }}
-    >
+    <AppBar       position="fixed"      sx={{ backgroundColor: "#1976d2", width: "100%", left: 0, top: 0 }}>
       {/**Toolbar	A layout wrapper.	Provides consistent horizontal padding and a min-height that scales with the screen size (responsive height). */}
       <Toolbar>
         {/* The Box component is a generic container for grouping other components. 
