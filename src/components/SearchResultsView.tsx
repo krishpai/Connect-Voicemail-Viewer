@@ -273,14 +273,14 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       hideable: false,
       valueGetter: (value) => (value === 'VMX3_VM_QUEUE' ? 'Self' : value),
     },
-    { field: 'vmx3_customer_number', headerName: 'Customer Phone', width: 132, hideable: false },
+    { field: 'vmx3_customer_number', headerName: 'Caller number', width: 140, hideable: false },
     { field: 'vmx3_dialed_number', headerAlign: 'center', headerName: 'Dialed number', width: 130, hideable: false },
     { field: 'vmx3_lang_value', headerAlign: 'center', align: 'center', headerName: 'Language', width: 100, hideable: false },
     {
       field: 'presigned_url',
       headerName: 'Listen',
       headerAlign: 'center',
-      width: 320,
+      width: 280,
       hideable: false,
       renderCell: (params) => (
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -292,7 +292,12 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
               handleMarkAsRead(params.row.vmx3_contact_id, params.row.fileName);
               playingAudioRef.current = null;
             }}
-            style={{ height: '30px', outline: 'none' }}
+            style={{ 
+              height: '24px',      // Shorter than your previous 30px
+              width: '250px',      // Narrower than default
+              transform: 'scale(0.9)', // Optional: shrinks the whole widget proportionally
+              outline: 'none' 
+            }}
           >
             Your browser does not support audio.
           </audio>
@@ -304,7 +309,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       headerName: 'Transcript',
       align: 'center',
       headerAlign: 'center',
-      width: 100,
+      width: 90,
       sortable: false,
       hideable: false,
       renderCell: (params) => (
@@ -376,7 +381,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         }}
         sx={{
           '& .MuiDataGrid-columnHeader': { backgroundColor: '#2e2c2c33 !important', color: 'black !important' },
-          '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
+          '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold !important', fontSize: '0.9rem',  letterSpacing: '0.02em',},
           '& .MuiTablePagination-selectLabel': { margin: 0, lineHeight: 'inherit', alignSelf: 'center' },
           '& .MuiTablePagination-displayedRows': { margin: 0, alignSelf: 'center' },
           '& .MuiTablePagination-actions': { margin: 0 },
