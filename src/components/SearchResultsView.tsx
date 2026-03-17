@@ -53,6 +53,7 @@ interface MatchedObject {
   vmx3_call_category: string;
   vmx3_dialed_number: string;
   vmx3_queue: string;
+  transcript: string;
   presigned_url: string;
 }
 
@@ -364,6 +365,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   return (
     <div style={{ height: 600, width: '100%', paddingTop: '20px' }}>
       <DataGrid
+        key={gridRows.length}
         rows={gridRows}
         columns={columns}
         rowHeight={65}
@@ -376,9 +378,10 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         disableMultipleRowSelection
         initialState={{
           columns: {
-            columnVisibilityModel: { id: false, dial_action: isIframe },
+            columnVisibilityModel: { id: false, dial_action: isIframe, transcript: true },
           },
         }}
+          
         sx={{
           '& .MuiDataGrid-columnHeader': { backgroundColor: '#2e2c2c33 !important', color: 'black !important' },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold !important', fontSize: '0.9rem',  letterSpacing: '0.02em',},
