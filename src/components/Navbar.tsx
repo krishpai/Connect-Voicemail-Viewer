@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ userName, region, companyName }) => {
         {/* Fixed variant to h6 */}
 
         <Typography variant="h6" component="div" sx={{ fontWeight: "bold" }}>
-          {companyName} Voice Mail Viewer
+          {companyName} Voice Mail
         </Typography>
 
         <Box sx={{ flexGrow: 1 }} />
