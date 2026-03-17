@@ -183,12 +183,13 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   }, [itemToDelete, entraAuth, acquireTokenWithRecovery]);
 
   const columns = useMemo<GridColDef<GridRow>[]>(() => [
-    { field: 'id', headerName: 'Contact ID', width: 120, headerAlign: 'center', align: 'center' },
+    { field: 'id', headerName: 'Contact ID', width: 120, headerAlign: 'center', filterable: false, align: 'center' },
     {
       field: 'vmx3_unread',
       headerName: '',
       width: 70,
       headerAlign: 'center',
+      filterable: false,
       align: 'center',
       renderCell: (params) => (
         <Tooltip title={params.value === 'Y' ? "Unread" : "Played"}>
@@ -206,15 +207,17 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       align: 'center',
       valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' 
     },
-    { field: 'vmx3_queue_name', headerName: 'Queue', width: 160, headerAlign: 'center', align: 'center' },
+    { field: 'vmx3_queue_name', headerName: 'Queue', width: 200, headerAlign: 'center', align: 'center' },
     { field: 'vmx3_customer_number', headerName: 'Caller number', width: 130, headerAlign: 'center', align: 'center' },
     { field: 'vmx3_dialed_number', headerName: 'Dialed number', width: 130, headerAlign: 'center', align: 'center' },
     { field: 'vmx3_lang_value', headerName: 'Language', width: 100, headerAlign: 'center', align: 'center' },
     {
       field: 'presigned_url',
       headerName: 'Listen',
-      width: 280,
+      width: 260,
       headerAlign: 'center',
+      filterable: false,
+      sortable: false,
       align: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -225,9 +228,11 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     {
       field: 'transcript',
       headerName: 'Transcript',
-      width: 110,
+      width: 80,
       headerAlign: 'center',
       align: 'center',
+      filterable: false,
+      sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
           <TranscriptPopup text={(params.value as string) ?? ""} />
@@ -240,6 +245,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       width: 90,
       headerAlign: 'center',
       align: 'center',
+      filterable: false,
+      sortable: false,
       renderCell: (params) => (
         <IconButton color="primary" onClick={() => DialCustomer(params.row.vmx3_customer_number)}><PhoneIcon /></IconButton>
       )
@@ -250,6 +257,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       width: 70,
       headerAlign: 'center',
       align: 'center',
+      sortable: false,
+      filterable: false,
       renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
         <IconButton onClick={() => { setItemToDelete({ id: params.row.id, fileName: params.row.fileName }); setDeleteDialogOpen(true); }}><DeleteIcon /></IconButton>
       ) : null
