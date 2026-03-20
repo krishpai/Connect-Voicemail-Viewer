@@ -2,15 +2,16 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { apiRequest } from "../authConfig";
 import { 
   DataGrid, 
-  type GridColDef, 
   GridFooterContainer, 
   GridFooter, 
-  type GridRowSelectionModel, 
   GridColumnMenu, 
+  type GridColDef, 
+  type GridRowSelectionModel, 
   type GridColumnMenuProps,
   type GridColumnVisibilityModel,
   type GridFooterContainerProps,
 } from '@mui/x-data-grid';
+
 import { 
   Tooltip, 
   IconButton, 
