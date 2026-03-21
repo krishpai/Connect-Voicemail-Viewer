@@ -304,7 +304,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
         disableVirtualization 
         columnBufferPx={500}
-        pageSizeOptions={[5, 10, 25]}
+        pageSizeOptions={[10, 25, 50]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         rowSelectionModel={rowSelectionModel}
