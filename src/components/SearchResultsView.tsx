@@ -29,6 +29,7 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PhoneIcon from '@mui/icons-material/Phone';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TranscriptPopup from './TranscriptPopup'; 
 import { useAcquireTokenWithRecovery } from "../hooks/useAcquireTokenWithRecovery";
 
@@ -72,10 +73,36 @@ interface CustomFooterProps extends GridFooterContainerProps {
 
 const CustomFooter = (props: CustomFooterProps) => {
   const { contactId, ...other } = props;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyContactId = async () => {
+    if (!contactId) return;
+    try {
+      await navigator.clipboard.writeText(contactId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy Contact ID", err);
+    }
+  };
+
   return (
     <GridFooterContainer {...other} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Box sx={{ pl: 2, fontSize: '0.875rem', color: '#666', fontWeight: 500 }}>
-        {contactId ? `Selected Contact ID: ${contactId}` : 'No row selected'}
+      <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ fontSize: '0.875rem', color: '#666', fontWeight: 500 }}>
+          {contactId ? `Selected Contact ID: ${contactId}` : 'No row selected'}
+        </Box>
+        {contactId && (
+          <Tooltip title={copied ? "Copied!" : "Copy Contact ID"}>
+            <IconButton size="small" onClick={handleCopyContactId} sx={{ ml: 0.5 }}>
+              {copied ? (
+                <CheckCircleIcon fontSize="small" color="success" />
+              ) : (
+                <ContentCopyIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
       <GridFooter sx={{ border: 'none' }} />
     </GridFooterContainer>
@@ -271,13 +298,10 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   return (
     <Box sx={{ height: 600, width: '100%', pt: 2 }}>
       <DataGrid
-        key={gridRows.length > 0 ? "loaded" : "empty"} 
         rows={gridRows}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={(newModel) => setColumnVisibilityModel(newModel)}
-        
-        // Final Fix for TS Errors and Disappearing Columns
         disableVirtualization 
         columnBufferPx={500}
         pageSizeOptions={[5, 10, 25]}
@@ -286,9 +310,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
         rowSelectionModel={rowSelectionModel}
         onRowSelectionModelChange={(newModel) => setRowSelectionModel(newModel)}
         hideFooterSelectedRowCount
-
-       
-          sx={{
+        sx={{
           '& .MuiDataGrid-columnHeader': { backgroundColor: '#2e2c2c33 !important', color: 'black !important' },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
           '& .MuiTablePagination-selectLabel': { margin: 0, lineHeight: 'inherit', alignSelf: 'center' },
@@ -298,7 +320,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           '& .MuiTablePagination-toolbar': { display: 'flex', alignItems: 'center', minHeight: '52px' },
           '& .MuiDataGrid-footerContainer': { borderTop: '1px solid rgba(224, 224, 224, 1)' }
         }}
-
         slots={{ columnMenu: CustomColumnMenu, footer: CustomFooter, noRowsOverlay: NoRowsOverlay }}
         slotProps={{ footer: { contactId: selectedContactId } as CustomFooterProps }}
       />
