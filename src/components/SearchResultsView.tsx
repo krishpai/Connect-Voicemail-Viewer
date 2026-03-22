@@ -4,13 +4,11 @@ import { apiRequest } from "../authConfig";
 import { 
   DataGridPro, 
   GridFooterContainer, 
-  GridFooter, 
   GridColumnMenu, 
   type GridColDef, 
   type GridRowSelectionModel, 
   type GridColumnMenuProps, 
   type GridColumnVisibilityModel,
-  type GridFooterContainerProps,
 } from '@mui/x-data-grid-pro';
 
 import { 
@@ -24,6 +22,7 @@ import {
   Button, 
   CircularProgress,
   Box,
+  TablePagination,
 } from '@mui/material';
 
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
@@ -70,14 +69,32 @@ interface GridRow extends MatchedObject {
   fileName: string;
 }
 
-interface CustomFooterProps extends GridFooterContainerProps {
+/**
+ * CUSTOM FOOTER PROPS INTERFACE
+ * We explicitly define the types for the props we pass through slotProps.
+ */
+interface CustomFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   contactId?: string | null;
+  count?: number;
+  page?: number;
+  pageSize?: number;
+  onPageChange?: (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
+  onPageSizeChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 // --- Sub-Components ---
 
 const CustomFooter = (props: CustomFooterProps) => {
-  const { contactId, ...other } = props;
+  const { 
+    contactId, 
+    count = 0, 
+    page = 0, 
+    pageSize = 10, 
+    onPageChange, 
+    onPageSizeChange, 
+    ...other 
+  } = props;
+  
   const [copied, setCopied] = useState(false);
 
   const handleCopyContactId = async () => {
@@ -88,22 +105,59 @@ const CustomFooter = (props: CustomFooterProps) => {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) { console.error("Copy failed", err); }
   };
-  ;
+
   return (
-    <GridFooterContainer {...other} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <GridFooterContainer {...other} sx={{ 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      minHeight: '52px !important',
+      paddingY: 0
+    }}>
       <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ fontSize: '0.875rem', color: '#666', fontWeight: 500 }}>
+        <Box sx={{ fontSize: '0.875rem', color: '#666', fontWeight: 500, lineHeight: 1 }}>
           {contactId ? `Selected Contact ID: ${contactId}` : 'No row selected'}
         </Box>
         {contactId && (
           <Tooltip title={copied ? "Copied!" : "Copy Contact ID"}>
-            <IconButton size="small" onClick={handleCopyContactId} sx={{ ml: 0.5 }}>
+            <IconButton size="small" onClick={handleCopyContactId}>
               {copied ? <CheckCircleIcon fontSize="small" color="success" /> : <ContentCopyIcon fontSize="small" />}
             </IconButton>
           </Tooltip>
         )}
       </Box>
-      <GridFooter sx={{ border: 'none' }} />
+
+      <TablePagination
+        component="div"
+        count={count}
+        page={page}
+        onPageChange={onPageChange ?? (() => {})}
+        rowsPerPage={pageSize}
+        onRowsPerPageChange={onPageSizeChange}
+        rowsPerPageOptions={[10, 15, 25]}
+        sx={{
+          border: 'none',
+          '& .MuiTablePagination-toolbar': {
+            minHeight: '52px',
+            height: '52px',
+            display: 'flex',
+            alignItems: 'center',
+            paddingY: 0,
+          },
+          '& .MuiTablePagination-selectLabel': {
+            margin: 0,
+            lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center'
+          },
+          '& .MuiTablePagination-displayedRows': {
+            margin: 0,
+            lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center'
+          },
+        }}
+      />
     </GridFooterContainer>
   );
 };
@@ -133,12 +187,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
 
   const [readMessages, setReadMessages] = useState<Set<string>>(new Set());
   const [deletedFileNames, setDeletedFileNames] = useState<Set<string>>(new Set());
-  
-  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({
-    id: false,
-    transcript: true,
-  });
-
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({ id: false, transcript: true });
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -150,7 +199,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     try {
       const data = JSON.parse(searchResult);
       const rawData: Record<string, MatchedObject> = data.matched_objects || {};
-      
       return Object.entries(rawData)
         .filter(([fileName]) => !deletedFileNames.has(fileName))
         .map(([fileName, details]) => ({
@@ -161,10 +209,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           vmx3_queue_name: (details.vmx3_target === "agent" && details.vmx3_preferred_agent?.toLowerCase() === userName?.toLowerCase()) 
             ? "Self" : (details.vmx3_queue_name === 'VMX3_VM_QUEUE' ? 'Self' : details.vmx3_queue_name)
         }));
-    } catch (e) {
-      console.error("Parse error", e);
-      return [];
-    }
+    } catch (e) { console.log(e);return []; }
   }, [searchResult, userName, readMessages, deletedFileNames]);
 
   const selectedContactId = useMemo(() => {
@@ -174,13 +219,11 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     return gridRows.find((row) => row.id === firstId)?.vmx3_contact_id || null;
   }, [rowSelectionModel, gridRows]);
 
-  /********************* handleAudioPlay *************/ 
   const handleAudioPlay = useCallback((e: React.SyntheticEvent<HTMLAudioElement>) => {
     if (playingAudioRef.current && playingAudioRef.current !== e.currentTarget) playingAudioRef.current.pause();
     playingAudioRef.current = e.currentTarget;
   }, []);
 
-  /********************* handleMarkAsRead *************/ 
   const handleMarkAsRead = useCallback(async (contactId: string, fileName: string) => {
     setReadMessages(prev => new Set(prev).add(contactId));
     const apiUrl = entraAuth
@@ -196,7 +239,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
     } catch (error) { console.error("Mark read error:", error); }
   }, [entraAuth, acquireTokenWithRecovery]);
 
-  /********************* confirmDelete *************/ 
   const confirmDelete = useCallback(async () => {
     if (!itemToDelete) return;
     setIsDeleting(true);
@@ -219,91 +261,36 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
 
   const columns = useMemo<GridColDef<GridRow>[]>(() => {
     const baseColumns: GridColDef<GridRow>[] = [
-      { field: 'id', headerName: 'Contact ID', width: 120, headerAlign: 'center', filterable: false, align: 'center' },
-      {
-        field: 'vmx3_unread',
-        headerName: '',
-        width: 70,
-        headerAlign: 'center',
-        filterable: false,
-        align: 'center',
-        renderCell: (params) => (
+      { field: 'id', filterable: false, headerName: 'Contact ID', width: 120, align: 'center', getApplyQuickFilterFn: () => null},
+      { field: 'vmx3_unread', filterable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
           <Tooltip title={params.value === 'Y' ? "Unread" : "Played"}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               {params.value === 'Y' ? <MailOutlineIcon color="primary" /> : <CheckCircleIcon color="action" />}
             </Box>
           </Tooltip>
-        )
-      },
-      { 
-        field: 'vmx3_timestamp', 
-        headerName: 'Date', 
-        width: 220, 
-        headerAlign: 'center',
-        align: 'center',
-        valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' 
-      },
-      { field: 'vmx3_queue_name', headerName: 'Queue', width: 200, headerAlign: 'center', align: 'center' },
-      { field: 'vmx3_customer_number', headerName: 'Caller number', width: 130, headerAlign: 'center', align: 'center' },
-      { field: 'vmx3_dialed_number', headerName: 'Dialed number', width: 130, headerAlign: 'center', align: 'center' },
-      { field: 'vmx3_lang_value', headerName: 'Language', width: 100, headerAlign: 'center', align: 'center' },
-      {
-        field: 'presigned_url',
-        headerName: 'Listen',
-        width: 260,
-        headerAlign: 'center',
-        filterable: false,
-        sortable: false,
-        disableExport: true, // Corrected from exportable
-        align: 'center',
-        renderCell: (params) => (
+      )},
+      { field: 'vmx3_timestamp', headerName: 'Date', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
+      { field: 'vmx3_queue_name', headerName: 'Queue', width: 200, align: 'center' },
+      { field: 'vmx3_customer_number', headerName: 'Caller number', width: 130, align: 'center' },
+      { field: 'vmx3_dialed_number', headerName: 'Dialed number', width: 130, align: 'center' },
+      { field: 'vmx3_lang_value', headerName: 'Language', width: 100, align: 'center' },
+      { field: 'presigned_url', filterable: false, headerName: 'Listen', width: 260, align: 'center', renderCell: (params) => (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <audio controls src={params.value as string} onPlay={handleAudioPlay} onEnded={() => handleMarkAsRead(params.row.id, params.row.fileName)} style={{ height: '24px', width: '250px' }} />
           </Box>
-        )
-      },
-      {
-        field: 'transcript',
-        headerName: 'Transcript',
-        width: 110,
-        headerAlign: 'center',
-        align: 'center',
-        filterable: true, 
-        sortable: false,   
-        renderCell: (params) => (
+      )},
+      { field: 'transcript', filterable: false, headerName: 'Transcript', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <TranscriptPopup text={(params.value as string) ?? ""} />
           </Box>
-        )
-      },
-      {
-        field: 'dial_action',
-        headerName: 'Call back',
-        width: 90,
-        headerAlign: 'center',
-        align: 'center',
-        filterable: false,
-        sortable: false,
-        disableExport: true, // Corrected from exportable
-        renderCell: (params) => (
+      )},
+      { field: 'dial_action', headerName: 'Call back', width: 90, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
           <IconButton color="primary" onClick={() => onDialNumberClicked(params.row.vmx3_customer_number)}><PhoneIcon /></IconButton>
-        )
-      },
-      {
-        field: 'delete_action',
-        headerName: '',
-        width: 70,
-        headerAlign: 'center',
-        align: 'center',
-        sortable: false,
-        filterable: false,
-        disableExport: true, // Corrected from exportable
-        renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
+      )},
+      { field: 'delete_action', filterable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
           <IconButton onClick={() => { setItemToDelete({ id: params.row.id, fileName: params.row.fileName }); setDeleteDialogOpen(true); }}><DeleteIcon /></IconButton>
-        ) : null
-      }
+      ) : null }
     ];
-
     return baseColumns.filter(col => isIframe || col.field !== 'dial_action');
   }, [vmx3Admin, onDialNumberClicked, handleAudioPlay, handleMarkAsRead]);
 
@@ -312,22 +299,40 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   return (
     <Box sx={{ height: 600, width: '100%', pt: 2 }}>
       <DataGridPro
+        pagination
         showToolbar
         rows={gridRows}
         columns={columns}
         columnVisibilityModel={columnVisibilityModel}
         onColumnVisibilityModelChange={setColumnVisibilityModel}
-        pageSizeOptions={[10, 25, 50]}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         rowSelectionModel={rowSelectionModel}
         onRowSelectionModelChange={setRowSelectionModel}
         hideFooterSelectedRowCount
-        
-        /*initialState={{
-          pinnedColumns: { right: ['presigned_url', 'delete_action'] }
-        }}*/
-
+        slots={{ 
+          columnMenu: CustomColumnMenu, 
+          footer: CustomFooter, 
+          noRowsOverlay: NoRowsOverlay,
+        }}
+        slotProps={{ 
+          footer: { 
+            contactId: selectedContactId,
+            count: gridRows.length,
+            page: paginationModel.page,
+            pageSize: paginationModel.pageSize,
+            onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => 
+              setPaginationModel(prev => ({ ...prev, page: newPage })),
+            onPageSizeChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
+              setPaginationModel(prev => ({ ...prev, pageSize: parseInt(event.target.value, 10), page: 0 })),
+          } as CustomFooterProps, // Use our defined interface instead of 'any'
+          toolbar: {
+            showQuickFilter: true,
+            
+            printOptions: { disableToolbarButton: true },
+            style: { backgroundColor: '#e0e0e0' },
+          }
+        }}
         sx={{
           '& .MuiDataGrid-columnHeader': { backgroundColor: '#2e2c2c33 !important', color: 'black !important' },
           '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
@@ -336,21 +341,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
             flexDirection: 'column',
             backgroundColor: '#424242 !important',
           },
-          
-        }}
-        slots={{ 
-          columnMenu: CustomColumnMenu, 
-          footer: CustomFooter, 
-          noRowsOverlay: NoRowsOverlay,
-        }}
-        slotProps={{ 
-          footer: { contactId: selectedContactId } as CustomFooterProps,
-          toolbar: {
-            showQuickFilter: true,
-            // Hides the Columns button from the default toolbar layout
-            printOptions: { disableToolbarButton: true },
-             style: { backgroundColor: '#e0e0e0' },
-          }
         }}
       />
 
