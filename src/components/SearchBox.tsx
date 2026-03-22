@@ -101,9 +101,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ region, entraAuth, vmx3Adm
         p: 3 
       }}
     >
-      {/* Top Section: Input Controls 
-        justifyContent="center" ensures equal space on left and right 
-      */}
+      
       <Stack 
         direction={{ xs: "column", md: "row" }} 
         spacing={4} 

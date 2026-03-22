@@ -151,8 +151,6 @@ function App() {
 
   useEffect(() => {
     
-    
-
     // 1. Standalone logic
     if (!isIframe && accounts.length > 0) 
     {
@@ -261,7 +259,7 @@ function App() {
       ) : (
         <>
           <SearchBox region={region} entraAuth={!isIframe}  vmx3Admin={vmx3Admin} onSearchResultChange={setSearchResult} />
-          <Divider sx={{ my: 2, border: "1px solid", borderColor: "primary.dark" }} />
+          <Divider sx={{ my: 0.5, border: "1px solid", borderColor: "primary.dark" }} />
           {searchResult && (<SearchResultsView searchResult={searchResult} userName={userName}  entraAuth={!isIframe} vmx3Admin={vmx3Admin} onDialNumberClicked={makeOutboundCall}  />)}
         </>
       )}

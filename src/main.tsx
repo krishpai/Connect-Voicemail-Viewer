@@ -7,7 +7,10 @@ import { msalConfig } from "./authConfig.ts";
 import App from "./App.tsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
+import { LicenseInfo } from '@mui/x-license';
 
+
+LicenseInfo.setLicenseKey('e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y');
 /**
  * MSAL should be instantiated outside of the component tree to prevent it
  * from being re-instantiated on re-renders.
