@@ -44,7 +44,7 @@ interface SearchResultsViewProps {
   entraAuth: boolean;
   userName: string | null | undefined;
   vmx3Admin: string | null | undefined;
-  onDialNumberClicked: (value: string) => void;
+  onDialNumberClicked: (value: string, contactid: string) => void;
 }
 
 interface MatchedObject {
@@ -116,7 +116,7 @@ const CustomFooter = (props: CustomFooterProps) => {
     }}>
       <Box sx={{ pl: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
         <Box sx={{ fontSize: '0.875rem', color: '#666', fontWeight: 500, lineHeight: 1 }}>
-          {contactId ? `Selected Contact ID: ${contactId}` : 'No row selected'}
+          {contactId ? `Selected Contact ID: ${contactId}` : ''}
         </Box>
         {contactId && (
           <Tooltip title={copied ? "Copied!" : "Copy Contact ID"}>
@@ -187,7 +187,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
 
   const [readMessages, setReadMessages] = useState<Set<string>>(new Set());
   const [deletedFileNames, setDeletedFileNames] = useState<Set<string>>(new Set());
-  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({ id: false, transcript: true });
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({ id: false });
   const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -261,7 +261,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
 
   const columns = useMemo<GridColDef<GridRow>[]>(() => {
     const baseColumns: GridColDef<GridRow>[] = [
-      { field: 'id', filterable: false, headerName: 'Contact ID', width: 120, align: 'center', getApplyQuickFilterFn: () => null},
+      { field: 'id', filterable: false ,headerName: 'Contact ID', width: 120, align: 'center', getApplyQuickFilterFn: () => null},
       { field: 'vmx3_unread', filterable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
           <Tooltip title={params.value === 'Y' ? "Unread" : "Played"}>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -274,20 +274,20 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       { field: 'vmx3_customer_number', headerName: 'Caller number', width: 130, align: 'center' },
       { field: 'vmx3_dialed_number', headerName: 'Dialed number', width: 130, align: 'center' },
       { field: 'vmx3_lang_value', headerName: 'Language', width: 100, align: 'center' },
-      { field: 'presigned_url', filterable: false, headerName: 'Listen', width: 260, align: 'center', renderCell: (params) => (
+      { field: 'presigned_url', filterable: false, sortable: false, headerName: 'Listen', width: 260, align: 'center', renderCell: (params) => (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <audio controls src={params.value as string} onPlay={handleAudioPlay} onEnded={() => handleMarkAsRead(params.row.id, params.row.fileName)} style={{ height: '24px', width: '250px' }} />
           </Box>
       )},
-      { field: 'transcript', filterable: false, headerName: 'Transcript', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
+      { field: 'transcript', filterable: false, sortable: false, headerName: 'Transcript', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <TranscriptPopup text={(params.value as string) ?? ""} />
           </Box>
       )},
-      { field: 'dial_action', headerName: 'Call back', width: 90, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
-          <IconButton color="primary" onClick={() => onDialNumberClicked(params.row.vmx3_customer_number)}><PhoneIcon /></IconButton>
+      { field: 'dial_action', headerName: 'Call back', sortable: false, width: 90, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
+          <IconButton color="primary" onClick={() => onDialNumberClicked(params.row.vmx3_customer_number, params.row.vmx3_contact_id)}><PhoneIcon /></IconButton>
       )},
-      { field: 'delete_action', filterable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
+      { field: 'delete_action', filterable: false, sortable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
           <IconButton onClick={() => { setItemToDelete({ id: params.row.id, fileName: params.row.fileName }); setDeleteDialogOpen(true); }}><DeleteIcon /></IconButton>
       ) : null }
     ];
@@ -299,6 +299,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   return (
     <Box sx={{ height: 600, width: '100%', pt: 2 }}>
       <DataGridPro
+        disableColumnMenu 
+        disableColumnSelector
         pagination
         showToolbar
         rows={gridRows}

@@ -218,7 +218,7 @@ function App() {
   }, [accounts, instance, getUserInfo_Entra, getUserInfo_Connect, accounts.length]);
 
   
-  const makeOutboundCall  = useCallback(async (phoneNumber: string)  =>
+  const makeOutboundCall  = useCallback(async (phoneNumber: string, relatedContactid: string)  =>
   {
     console.log("phoneNumber: "+ phoneNumber)
     if (!contactClient || !voiceClient) return;    
@@ -235,7 +235,8 @@ function App() {
       }
       
       console.log("Calling  "+ phoneNumber)
-      const outboundCallResult:CreateOutboundCallResult = await voiceClient.createOutboundCall(phoneNumber);
+      const outboundCallResult:CreateOutboundCallResult = await voiceClient.createOutboundCall(phoneNumber, {relatedContactId: relatedContactid });
+      console.log("Related contactId : " + relatedContactid);  
       console.log("outboundCallResult.contactId : " + outboundCallResult.contactId);    
     }
     catch (error) 
