@@ -269,17 +269,17 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
             </Box>
           </Tooltip>
       )},
-      { field: 'vmx3_timestamp', headerName: 'Date', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
-      { field: 'vmx3_queue_name', headerName: 'Queue', width: 200, align: 'center' },
-      { field: 'vmx3_customer_number', headerName: 'Caller number', width: 130, align: 'center' },
-      { field: 'vmx3_dialed_number', headerName: 'Dialed number', width: 130, align: 'center' },
-      { field: 'vmx3_lang_value', headerName: 'Language', width: 100, align: 'center' },
-      { field: 'presigned_url', filterable: false, sortable: false, headerName: 'Listen', width: 260, align: 'center', renderCell: (params) => (
+      { field: 'vmx3_timestamp', headerName: 'Date', headerAlign:'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
+      { field: 'vmx3_queue_name', headerName: 'Queue', headerAlign:'center', width: 200, align: 'center' },
+      { field: 'vmx3_customer_number', headerName: 'Caller number', headerAlign:'center', width: 130, align: 'center' },
+      { field: 'vmx3_dialed_number', headerName: 'Dialed number', headerAlign:'center', width: 130, align: 'center' },
+      { field: 'vmx3_lang_value', headerName: 'Language', headerAlign:'center', width: 100, align: 'center' },
+      { field: 'presigned_url', filterable: false, sortable: false, headerName: 'Listen', headerAlign:'center', width: 260, align: 'center', renderCell: (params) => (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <audio controls src={params.value as string} onPlay={handleAudioPlay} onEnded={() => handleMarkAsRead(params.row.id, params.row.fileName)} style={{ height: '24px', width: '250px' }} />
           </Box>
       )},
-      { field: 'transcript', filterable: false, sortable: false, headerName: 'Transcript', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
+      { field: 'transcript', filterable: false, sortable: false, headerName: 'Transcript', headerAlign:'center', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <TranscriptPopup text={(params.value as string) ?? ""} />
           </Box>
