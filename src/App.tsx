@@ -89,8 +89,8 @@ function App() {
       {
         setRegion(data.region);
         setVMX3Admin(data.voicemail_admin);
-        //setViewAll(data.viewcall);
-        setViewAll('Y');
+        setViewAll(data.viewall);
+        
         console.log("User region identified:", data.region);
       }
     } 
@@ -133,8 +133,8 @@ function App() {
         setRegion(data.region);
         setUserName(data.userName);
         setVMX3Admin(data.voicemail_admin);
-        setViewAll(data.viewcall);
-        setViewAll('Y');
+        setViewAll(data.viewall);
+        
 
         console.log("User name identified:", data.userName);
         console.log("User region identified:", data.region);
