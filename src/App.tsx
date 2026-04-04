@@ -92,6 +92,8 @@ function App() {
         setViewAll(data.viewall);
         
         console.log("User region identified:", data.region);
+        console.log("User admin status identified:", data.voicemail_admin);
+        console.log("User view all status identified:", data.viewall);
       }
     } 
     catch (error) 
