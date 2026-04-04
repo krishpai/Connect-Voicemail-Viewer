@@ -44,6 +44,7 @@ interface SearchResultsViewProps {
   entraAuth: boolean;
   userName: string | null | undefined;
   vmx3Admin: string | null | undefined;
+  viewAll: string | null | undefined;
   onDialNumberClicked: (value: string, contactid: string) => void;
 }
 
@@ -181,7 +182,7 @@ const NoRowsOverlay = () => (
 
 // --- Main Component ---
 
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, userName, entraAuth, vmx3Admin, onDialNumberClicked }) => {
+export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResult, userName, entraAuth, vmx3Admin, viewAll, onDialNumberClicked }) => {
   const acquireTokenWithRecovery = useAcquireTokenWithRecovery();
   const playingAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -208,9 +209,10 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           vmx3_unread: readMessages.has(details.vmx3_contact_id) ? 'N' : details.vmx3_unread,
           vmx3_queue_name: (details.vmx3_target === "agent" && details.vmx3_preferred_agent?.toLowerCase() === userName?.toLowerCase()) 
             ? "Self" : (details.vmx3_queue_name === 'VMX3_VM_QUEUE' ? 'Self' : details.vmx3_queue_name)
-        }));
+        }))
+        .filter((row) => viewAll !== 'N' || row.vmx3_queue_name === 'Self');;
     } catch (e) { console.log(e);return []; }
-  }, [searchResult, userName, readMessages, deletedFileNames]);
+  }, [searchResult, userName, readMessages, deletedFileNames, viewAll]);
 
   const selectedContactId = useMemo(() => {
     const selectionIds = rowSelectionModel.ids;
@@ -270,16 +272,16 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           </Tooltip>
       )},
       { field: 'vmx3_timestamp', headerName: 'Date', headerAlign:'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
-      { field: 'vmx3_queue_name', headerName: 'Queue', headerAlign:'center', width: 200, align: 'center' },
+      { field: 'vmx3_queue_name', headerName: 'Queue', headerAlign:'center', width: 210, align: 'center' },
       { field: 'vmx3_customer_number', headerName: 'Caller number', headerAlign:'center', width: 130, align: 'center' },
       { field: 'vmx3_dialed_number', headerName: 'Dialed number', headerAlign:'center', width: 130, align: 'center' },
       { field: 'vmx3_lang_value', headerName: 'Language', headerAlign:'center', width: 100, align: 'center' },
-      { field: 'presigned_url', filterable: false, sortable: false, headerName: 'Listen', headerAlign:'center', width: 260, align: 'center', renderCell: (params) => (
+      { field: 'presigned_url', filterable: false, sortable: false, headerName: 'Listen', headerAlign:'center', width: 220, align: 'center', renderCell: (params) => (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <audio controls src={params.value as string} onPlay={handleAudioPlay} onEnded={() => handleMarkAsRead(params.row.id, params.row.fileName)} style={{ height: '24px', width: '250px' }} />
           </Box>
       )},
-      { field: 'transcript', filterable: false, sortable: false, headerName: 'Transcript', headerAlign:'center', width: 110, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
+      { field: 'transcript', filterable: false, sortable: false, headerName: 'Transcript', headerAlign:'center', width: 120, align: 'center', getApplyQuickFilterFn: () => null,renderCell: (params) => (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <TranscriptPopup text={(params.value as string) ?? ""} />
           </Box>
@@ -287,7 +289,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
       { field: 'dial_action', headerName: 'Call back', sortable: false, width: 90, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (
           <IconButton color="primary" onClick={() => onDialNumberClicked(params.row.vmx3_customer_number, params.row.vmx3_contact_id)}><PhoneIcon /></IconButton>
       )},
-      { field: 'delete_action', filterable: false, sortable: false, headerName: '', width: 70, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
+      { field: 'delete_action', filterable: false, sortable: false, headerName: '', width: 90, align: 'center', getApplyQuickFilterFn: () => null, renderCell: (params) => (vmx3Admin === 'Y' || params.row.vmx3_queue_name === 'Self') ? (
           <IconButton onClick={() => { setItemToDelete({ id: params.row.id, fileName: params.row.fileName }); setDeleteDialogOpen(true); }}><DeleteIcon /></IconButton>
       ) : null }
     ];
