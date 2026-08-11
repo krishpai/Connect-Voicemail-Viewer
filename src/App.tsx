@@ -130,7 +130,7 @@ function App() {
         setRegion(data.region);
         setTier(data.tier);
         setUserName(data.userName);
-        setCanDeleteVM('Y');
+        setCanDeleteVM(data.canDeleteVM);
 
         console.log("User name identified:", data.userName);
         console.log("User region identified:", data.region);
