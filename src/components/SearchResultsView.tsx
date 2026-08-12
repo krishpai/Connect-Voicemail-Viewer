@@ -89,7 +89,7 @@ const CustomFooter = (props: CustomFooterProps) => {
     contactId,
     count = 0,
     page = 0,
-    pageSize = 10,
+    pageSize = 15,
     onPageChange,
     onPageSizeChange,
     ...other
