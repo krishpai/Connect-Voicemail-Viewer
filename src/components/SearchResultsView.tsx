@@ -273,7 +273,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           </Tooltip>
         )
       },
-      { field: 'vmx3_timestamp', headerName: 'Date', headerAlign: 'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
+      { field: 'vmx3_timestamp', headerName: 'Local Date/Time', headerAlign: 'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
       { field: 'vmx3_queue_name', headerName: 'Queue', headerAlign: 'center', width: 210, align: 'center' },
       { field: 'vmx3_customer_number', headerName: 'Caller number', headerAlign: 'center', width: 130, align: 'center' },
       { field: 'vmx3_dialed_number', headerName: 'Dialed number', headerAlign: 'center', width: 130, align: 'center' },
