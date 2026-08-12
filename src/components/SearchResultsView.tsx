@@ -273,8 +273,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
           </Tooltip>
         )
       },
-      { field: 'vmx3_timestamp', headerName: 'Local Date/Time', headerAlign: 'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
-      { field: 'vmx3_queue_name', headerName: 'Queue', headerAlign: 'center', width: 210, align: 'center' },
+      { field: 'vmx3_timestamp', headerName: 'Local Time', headerAlign: 'center', width: 220, align: 'center', valueFormatter: (value) => value ? new Date(value as string).toLocaleString() : '' },
+      { field: 'vmx3_queue_name', headerName: 'Queue/Agent', headerAlign: 'center', width: 210, align: 'center' },
       { field: 'vmx3_customer_number', headerName: 'Caller number', headerAlign: 'center', width: 130, align: 'center' },
       { field: 'vmx3_dialed_number', headerName: 'Dialed number', headerAlign: 'center', width: 130, align: 'center' },
       { field: 'vmx3_lang_value', headerName: 'Language', headerAlign: 'center', width: 100, align: 'center' },
@@ -338,7 +338,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
             onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) =>
               setPaginationModel(prev => ({ ...prev, page: newPage })),
             onPageSizeChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-              setPaginationModel(prev => ({ ...prev, pageSize: parseInt(event.target.value, 10), page: 0 })),
+              setPaginationModel(prev => ({ ...prev, pageSize: parseInt(event.target.value, 15), page: 0 })),
           } as CustomFooterProps, // Use our defined interface instead of 'any'
           toolbar: {
             showQuickFilter: true,
