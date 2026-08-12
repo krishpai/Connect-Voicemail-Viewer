@@ -192,7 +192,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({ searchResu
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, fileName: string } | null>(null);
-  const [paginationModel, setPaginationModel] = useState({ pageSize: 10, page: 0 });
+  const [paginationModel, setPaginationModel] = useState({ pageSize: 15, page: 0 });
 
   const gridRows = useMemo<GridRow[]>(() => {
     if (!searchResult) return [];
