@@ -150,6 +150,7 @@ function App() {
 
   }, [])
 
+
   useEffect(() => {
 
     // 1. Standalone logic
