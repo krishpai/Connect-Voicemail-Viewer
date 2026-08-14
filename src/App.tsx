@@ -192,7 +192,8 @@ function App() {
           const agentRegion = match ? match[2] : "ALL";
 
           setRegion(agentRegion);
-          console.log("********** agentRP:", agentRP.name);
+          console.log("********** agentRP:", agentRP);
+          console.log("********** agentRP name:", agentRP.name);
           console.log("********** User region:", region);
 
           // Extract user ID from ARN
