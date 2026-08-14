@@ -127,13 +127,13 @@ function App() {
 
       const data = await response.json();
       if (data?.success && data?.found) {
-        setRegion(data.region);
+        //setRegion(data.region);
         setTier(data.tier);
         setUserName(data.userName);
         setCanDeleteVM(data.canDeleteVM);
 
         console.log("User name identified:", data.userName);
-        console.log("User region identified:", data.region);
+        //console.log("User region identified:", data.region);
         console.log("User tier identified:", data.tier);
         console.log("User VM delete status identified:", data.canDeleteVM);
 
@@ -187,6 +187,12 @@ function App() {
           setContactClient(contactClient);
 
           const agentARN = await agentClient.getARN();
+          const agentRP = await agentClient.getRoutingProfile();
+          const match = agentRP.name.match(/\[([^_]+)_([^_]+)_/);
+          const region = match ? match[2] : "ALL";
+
+          setRegion(region);
+
           // Extract user ID from ARN
           // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
           const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
