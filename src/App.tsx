@@ -189,9 +189,10 @@ function App() {
           const agentARN = await agentClient.getARN();
           const agentRP = await agentClient.getRoutingProfile();
           const match = agentRP.name.match(/\[([^_]+)_([^_]+)_/);
-          const region = match ? match[2] : "ALL";
+          const agentRegion = match ? match[2] : "ALL";
 
-          setRegion(region);
+          setRegion(agentRegion);
+          console.log("********** agentRP:", agentRP.name);
           console.log("********** User region:", region);
 
           // Extract user ID from ARN
