@@ -188,11 +188,11 @@ function App() {
 
           const agentARN = await agentClient.getARN();
           const agentRP = await agentClient.getRoutingProfile();
-          const match = agentRP.name.split("_")[1];
-          const agentRegion = match ? match[2] : "ALL";
+          const agentRegion = agentRP.name.split("_")[1];
+          //const agentRegion = match ? match[2] : "ALL";
 
           setRegion(agentRegion);
-          console.log("********** match:", match);
+          //console.log("********** match:", match);
           console.log("********** agentRP:", agentRP);
           console.log("********** agentRP name:", agentRP.name);
           console.log("********** User region:", agentRegion);
