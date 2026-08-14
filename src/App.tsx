@@ -192,6 +192,7 @@ function App() {
           const region = match ? match[2] : "ALL";
 
           setRegion(region);
+          console.log("********** User region:", region);
 
           // Extract user ID from ARN
           // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
