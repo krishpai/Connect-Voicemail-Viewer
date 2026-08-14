@@ -189,22 +189,20 @@ function App() {
           const agentARN = await agentClient.getARN();
           const agentRP = await agentClient.getRoutingProfile();
           const agentRegion = agentRP.name.split("_")[1];
-          //const agentRegion = match ? match[2] : "ALL";
-
-          setRegion(agentRegion);
-          //console.log("********** match:", match);
-          console.log("********** agentRP:", agentRP);
-          console.log("********** agentRP name:", agentRP.name);
-          console.log("********** User region:", agentRegion);
 
           // Extract user ID from ARN
           // ARN format: arn:aws:connect:region:account:instance/instance-id/agent/user-id
           const userIdMatch = agentARN.match(/\/agent\/(.+)$/);
           const connectUserId = userIdMatch ? userIdMatch[1] : null;
+
           console.log("User ID:", connectUserId);
           console.log("Agent ARN:", agentARN);
+          console.log("agentRP:", agentRP);
+          console.log("agentRP name:", agentRP.name);
+          console.log("User region:", agentRegion);
 
           setConnectUserId(connectUserId);
+          setRegion(agentRegion);
           setLoading(false);
 
           if (event.context.scope && "contactId" in event.context.scope) {
